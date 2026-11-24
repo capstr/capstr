@@ -1,7 +1,17 @@
 {
-    "name": "Capstr",
-    "description": "Web relay server for Capstr",
-    "repository": "https://github.com/therealjimjelly/capstr",
-    "logo": "https://node-js-sample-1234567890ab.herokuapp.com/node.png",
-    "keywords": ["node", "express", "static"]
+  "name": "Capstr",
+  "description": "A free captioning solution for live theatre",
+  "repository": "https://github.com/therealjimjelly/capstr",
+  "logo": "https://node-js-sample-1234567890ab.herokuapp.com/node.png",
+  "keywords": [
+    "node",
+    "express",
+    "static"
+  ],
+  "env": {
+    "SECRET_KEY": {
+      "description": "A secret key used to autheticate connection between local and web servers.",
+      "generator": "secret"
+    }
   }
+}
