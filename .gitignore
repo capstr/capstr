@@ -4,4 +4,3 @@ dist/
 *.log
 .DS_Store
 uploads/
-desktop/showfile.capstr

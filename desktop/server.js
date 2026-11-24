@@ -156,8 +156,8 @@ console.log('Current Caption:', currentCaption);
 
 let currentIndex = 0;
 //let clients = [];
-let venue = "capstr";
-let showname = "this show";
+let venue = showfile.showinfo.venue || "capstr";
+let showname = showfile.showinfo.showname || "this show";
 
 const setCurrentCaptionObject = (index) => {
     if (index < 0 || index >= showfile.captions.length) {

@@ -1,6 +1,6 @@
 node_modules/
 .env
 captions.xlsx
-showfile.json
+showfile.capstr
 dist/
 HANDOFF.md
