@@ -17,15 +17,14 @@
  */
 
 const { ipcRenderer } = require('electron');
-const fs = require('fs');
-const path = require('path');
-
-// Construct the path to package.json in the parent directory
-const packageJsonPath = path.join(__dirname, '..', 'package.json');
-const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-const appVersion = packageJson.version;
 
 window.onload = () => {
+    // ask the main process for the version rather than guessing a path to package.json,
+    // which differs between dev and the packaged app
+    ipcRenderer.invoke('get-app-version').then(appVersion => {
+        document.getElementById('appVersion').textContent = `Version: ${appVersion}`;
+    });
+
     ipcRenderer.invoke('get-network-adapters').then(adapters => {
         const selectElement = document.getElementById('adapterSelect');
         adapters.forEach(adapter => {
@@ -46,8 +45,6 @@ window.onload = () => {
             serialPortSelect.appendChild(option);
         });
     });
-
-   document.getElementById('appVersion').textContent = `Version: ${appVersion}`;
 };
 
 function selectAdapter() {

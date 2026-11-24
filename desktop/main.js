@@ -87,8 +87,10 @@ if (!gotTheLock) {
               },
             webPreferences: {
                 nodeIntegration: true,
-                contextIsolation: false,
-                preload: path.join(__dirname, 'preload.js')
+                contextIsolation: false
+                // no preload here: selectAdapter.js uses nodeIntegration's require('electron')
+                // directly, and preload.js's contextBridge call needs contextIsolation: true,
+                // which would conflict with that
             }
         });
 
@@ -111,7 +113,11 @@ if (!gotTheLock) {
                 color: '#000000',
                 symbolColor: '#74b1be',
                 height: 20
-              }
+              },
+            webPreferences: {
+                contextIsolation: true,
+                preload: path.join(__dirname, 'preload.js') // op.html uses window.electronAPI.openMonitorWindow
+            }
         });
 
         // Listen for a request from the renderer to open a new window
@@ -239,6 +245,12 @@ if (!gotTheLock) {
     app.whenReady().then(() => {
         log('App is ready');
         createSelectWindow();
+    });
+
+    // APP VERSION FOR THE SELECTION WINDOW (avoids guessing a path to package.json,
+    // which differs between dev and the packaged app)
+    ipcMain.handle('get-app-version', async () => {
+        return app.getVersion();
     });
 
     // LIST AVAILABLE NETWORK ADAPTERS FOR THE SELECTION WINDOW

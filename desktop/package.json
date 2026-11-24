@@ -1,6 +1,6 @@
 {
   "name": "capstr-desktop",
-  "version": "0.5.0",
+  "version": "0.5.01",
   "description": "Desktop (Electron) app for the Capstr captioning system",
   "main": "main.js",
   "scripts": {
