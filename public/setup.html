@@ -1,0 +1,481 @@
+<!--
+  Capstr
+  Copyright (C) 2026 Timothy Kelly
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Show Setup</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="titlebar">
+        <div id="logo">
+            <img src="icons/capstrlogo_transparent.png" alt="capstr logo" height="25vh"
+                style="filter: none; position: absolute; top: 10px; left: 50vw; transform: translateX(-50%);">
+        </div>
+        <div id="menubar">
+            <div id="ip-address" style="position: absolute; top: 40px; right: 10px; color: #ffffff;">IP ADDRESS:</div>
+        </div>
+    </div>
+
+
+
+    <h1 style="font-size: 5vh;">Setup</h1>
+
+    <div id="tab-container">
+
+        <a href="/op.html">
+            <button class="button discard-button"><span class="custom-emoji emoji-trash" role="img"
+                    aria-label="setup">⚙️⚙️</span> Exit Without Saving</button>
+        </a>
+        <button class="button save-button" onclick="returnAndSave()"><span class="custom-emoji emoji-save" role="img"
+                aria-label="setup">⚙️⚙️</span> Save & Exit Setup</button>
+        <div id="tabBar">
+            <button class="button tablink" id="defaultTab" onclick="showTab(event, 'Show Info')"><span
+                    class="custom-emoji emoji-venue" role="img" aria-label="setup">⚙️⚙️</span>Show / Venue
+                Info</button>
+            <button class="button tablink" onclick="showTab(event, 'Showfile')"><span class="custom-emoji emoji-file"
+                    role="img" aria-label="setup">⚙️⚙️</span>Showfile</button>
+            <button class="button tablink" onclick="showTab(event, 'Characters')"><span
+                    class="custom-emoji emoji-character" role="img" aria-label="setup">⚙️⚙️</span>Character</button>
+            <button class="button tablink" onclick="showTab(event, 'CapstrWeb')"><span class="custom-emoji emoji-web"
+                    role="img" aria-label="setup">⚙️⚙️</span>Web</button>
+            <button class="button tablink" onclick="showTab(event, 'Linetypes')"><span
+                    class="custom-emoji emoji-linetype" role="img" aria-label="setup">⚙️⚙️</span>Linetypes</button>
+        </div>
+        <div id="Showfile" class="tabcontent">
+            <h1 style="font-size: 2vh;">Showfile Actions</h1>
+            <input type="file" id="fileInput" style="display:none" onchange="uploadFile()">
+            <button class="button" onclick="document.getElementById('fileInput').click()">Import .xlsx</button>
+            <input type="file" id="showfileInput" style="display:none" onchange="uploadShowfile()">
+            <button class="button" onclick="document.getElementById('showfileInput').click()">Import capstr
+                showfile</button>
+            <button class="button" onclick="saveCopy()">Save a copy of showfile</button>
+        </div>
+
+        <div id="Characters" class="tabcontent">
+            <h1 style="font-size: 2vh;">Character Setup</h1>
+            <div class="character-container">
+                <table id="character-table">
+                    <thead id="table-header">
+                        <tr>
+                            <th>Character</th>
+                            <th>Color</th>
+                        </tr>
+                    </thead>
+                    <tbody id="charactersList">
+                        <!-- Characters will be populated by JavaScript -->
+            </div>
+            </table>
+        </div>
+    </div>
+
+    <div id="CapstrWeb" class="tabcontent">
+        <h1 style="font-size: 2vh;">CapstrWeb</h1>
+        <label for="serverUrl">Server URL:</label>
+        <input type="text" class="user-input" id="serverUrl" placeholder="http://localhost:3000">
+        <button class="button" id="setUrlButton">Set Server URL</button>
+        <p><i> Server URL: <span id="currentUrl">Not set</span></i></p>
+
+        <label for="secretKey">Secret Key:</label>
+        <input type="text" class="user-input" id="secretKey" placeholder="Enter secret key">
+        <button class="button" id="setKeyButton">Set Secret Key</button>
+        <p><i>Current Secret Key: <span id="currentKey">Not set</span></i></p>
+    </div>
+
+    <div id="Show Info" class="tabcontent">
+        <h1 style="font-size: 2vh;">Show Info Setup</h1>
+        <div>
+            <div>
+                <label for="show-name">Name:</label>
+                <input type="text" class="user-input" id="show-name">
+            </div>
+        </div>
+
+        <br>
+        <div>
+            <label for="show-venue">Venue:</label>
+            <input type="text" class="user-input" id="show-venue">
+        </div>
+        <br>
+        <div>
+            <label for="primary-language">Primary Language:</label>
+            <select class="user-input" id="primary-language"></select>
+        </div>
+
+    </div>
+
+    <div id="Linetypes" class="tabcontent">
+        <h1 style="font-size: 2vh;">Linetype Setup</h1>
+        <table class="linetype-table">
+            <thead>
+                <tr>
+                    <th>Linetype</th>
+                    <th>Italics</th>
+                    <th>Bold</th>
+                    <th>Underline</th>
+                    <th>Small Caps</th>
+                    <th>Square Brackets</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody id="linetypesTable">
+                <!-- Rows will be populated by JavaScript -->
+            </tbody>
+        </table>
+        <input type="text" class="user-input" id="linetypeInput" placeholder="linetype"><button class="button"
+            onclick="addLinetype()">Add
+            New
+            Linetype</button>
+    </div>
+
+    </div>
+
+    <br><br>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                console.log('Fetching showfile.capstr');
+                const response = await fetch('/showfile', { cache: "no-store" });
+                const showfile = await response.json();
+                console.log('Received showfile.capstr:', showfile);
+
+                populateLinetypes(showfile.linetypes);
+                populateCharacters(showfile.characters);
+                populateShowInfo(showfile.showinfo);
+            } catch (error) {
+                console.error('Error loading showfile:', error);
+            }
+            // Fetch and display the current URL and secret key on page load
+            fetchCurrentUrl();
+            fetchCurrentKey();
+        });
+
+
+        function populateShowInfo(showinfo) {
+            document.getElementById('show-name').value = showinfo.name;
+            document.getElementById('show-venue').value = showinfo.venue;
+
+            const primarySelect = document.getElementById('primary-language');
+            primarySelect.innerHTML = '';
+            (showinfo.languages || []).forEach(language => {
+                const option = document.createElement('option');
+                option.value = language;
+                option.textContent = language;
+                if (language === showinfo['primary-language']) {
+                    option.selected = true;
+                }
+                primarySelect.appendChild(option);
+            });
+            console.log('Show info populated');
+        }
+
+        function populateLinetypes(linetypes) {
+            const tableBody = document.getElementById('linetypesTable');
+
+            for (const linetype in linetypes) {
+                const row = document.createElement('tr');
+
+                const typeCell = document.createElement('td');
+                typeCell.textContent = linetype;
+                row.appendChild(typeCell);
+
+                const fields = ['italics', 'bold', 'underline', 'caps', 'brackets', 'notes'];
+                fields.forEach(field => {
+                    const cell = document.createElement('td');
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = linetypes[linetype][field];
+                    checkbox.dataset.linetype = linetype;
+                    checkbox.dataset.field = field;
+                    cell.appendChild(checkbox);
+                    row.appendChild(cell);
+                });
+
+                tableBody.appendChild(row);
+            }
+            console.log('Table populated with linetypes');
+        }
+
+        function populateCharacters(characters) {
+            const charactersList = document.getElementById('charactersList');
+            charactersList.innerHTML = '';
+
+            Object.entries(characters).forEach(([name, character]) => {
+                const container = document.createElement('tr');
+                container.className = 'character-item';
+                const charCol = document.createElement('td')
+                const colCol = document.createElement('td')
+
+                const label = document.createElement('label');
+                label.textContent = name;
+                label.htmlFor = `color-picker-${name}`;
+
+                const colorPicker = document.createElement('input');
+                colorPicker.type = 'color';
+                colorPicker.id = `color-picker-${name}`;
+                colorPicker.value = character.color;
+                colorPicker.dataset.name = name;
+
+                colorPicker.addEventListener('input', (event) => {
+                    characters[event.target.dataset.name].color = event.target.value;
+                });
+
+                charCol.appendChild(label);
+                colCol.appendChild(colorPicker);
+                container.appendChild(charCol);
+                container.appendChild(colCol);
+                charactersList.appendChild(container);
+            });
+            console.log('Characters populated');
+        }
+
+        async function saveChanges() {
+            try {
+                console.log('Saving changes');
+                const response = await fetch('/showfile', { cache: "no-store" });
+                const showfile = await response.json();
+
+                // Update showinfo
+                showfile.showinfo.name = document.getElementById('show-name').value;
+                showfile.showinfo.venue = document.getElementById('show-venue').value;
+                showfile.showinfo['primary-language'] = document.getElementById('primary-language').value;
+
+
+                // Update linetypes
+                const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    const linetype = checkbox.dataset.linetype;
+                    const field = checkbox.dataset.field;
+                    showfile.linetypes[linetype][field] = checkbox.checked;
+                });
+
+                // Update characters
+                const colorPickers = document.querySelectorAll('input[type="color"]');
+                colorPickers.forEach(picker => {
+                    const chrName = picker.dataset.name;
+                    showfile.characters[chrName].color = picker.value;
+                });
+
+                const saveResponse = await fetch('/update-showfile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(showfile)
+                });
+
+                if (saveResponse.ok) {
+                    alert('Changes saved successfully!');
+                    console.log('Changes saved successfully');
+                } else {
+                    console.error('Failed to save changes', saveResponse.statusText);
+                }
+            } catch (error) {
+                console.error('Error saving changes:', error);
+            }
+        }
+
+        async function fetchCurrentUrl() {
+            const response = await fetch('/get-url');
+            const data = await response.json();
+            document.getElementById('currentUrl').innerText = data.url || 'Not set';
+        }
+
+        async function fetchCurrentKey() {
+            const response = await fetch('/get-secret-key');
+            const data = await response.json();
+            document.getElementById('currentKey').innerText = data.key || 'Not set';
+        }
+
+        document.getElementById('setUrlButton').addEventListener('click', async () => {
+            const serverUrl = document.getElementById('serverUrl').value;
+            const response = await fetch('/set-url', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url: serverUrl })
+            });
+
+            if (response.ok) {
+                alert('Server URL set successfully!');
+                fetchCurrentUrl();
+            } else {
+                alert('Failed to set server URL');
+            }
+        });
+
+        document.getElementById('setKeyButton').addEventListener('click', async () => {
+            const secretKey = document.getElementById('secretKey').value;
+            const response = await fetch('/set-secret-key', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ key: secretKey })
+            });
+
+            if (response.ok) {
+                alert('Secret key set successfully!');
+                fetchCurrentKey();
+            } else {
+                alert('Failed to set secret key');
+            }
+        });
+
+        function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/upload-excel', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('File uploaded and processed successfully!');
+                        console.log('File uploaded and processed successfully');
+                        location.reload()
+                    } else {
+                        console.error('Failed to upload and process file', response.statusText);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error uploading and processing file:', error);
+                });
+        }
+
+        function uploadShowfile() {
+            const fileInput = document.getElementById('showfileInput');
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/upload-showfile', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('File uploaded and processed successfully!');
+                        console.log('File uploaded and processed successfully');
+                        location.reload()
+                    } else {
+                        console.error('Failed to upload and process file', response.statusText);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error uploading and processing file:', error);
+                });
+        }
+
+        function saveCopy() {
+            console.log('Saving a copy of showfile.capstr');
+            fetch('/showfile', { cache: "no-store" })
+                .then(response => response.json())
+                .then(showfile => {
+                    const blob = new Blob([JSON.stringify(showfile, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'showfile_copy.capstr';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    console.log('Copy of showfile.capstr saved');
+                })
+                .catch(error => console.error('Error saving copy of showfile.capstr:', error));
+        }
+        let serverip = '';
+
+
+        async function returnAndSave() {
+            await saveChanges();
+            window.location.href = '/op.html';
+        }
+
+        async function requestIP() {
+            try {
+                const response = await fetch('/server-ip');
+                serverip = await response.json();
+                console.log(serverip);
+                document.getElementById('ip-address').textContent = `Server IP: ${serverip}`;
+            } catch (error) {
+                console.error('Error fetching ip:', error);
+            }
+
+        }
+
+        async function addLinetype() {
+            const response = await fetch('/add-linetype', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ linetype: document.getElementById('linetypeInput').value })
+            });
+
+            if (response.ok) {
+                alert('Linetype added!');
+                location.reload();
+            } else {
+                alert('Failed to add Linetype');
+            }
+
+        }
+
+        requestIP();
+
+
+        function showTab(evt, tabName) {
+            // Declare all variables
+            var i, tabcontent, tablinks;
+
+            // Get all elements with class="tabcontent" and hide them
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+
+            // Get all elements with class="tablinks" and remove the class "active"
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+
+            // Show the current tab, and add an "active" class to the button that opened the tab
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        document.getElementById("defaultTab").click();
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,732 @@
+<!--
+  Capstr
+  Copyright (C) 2026 Timothy Kelly
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS file -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <title>Capstr</title> <!-- Page title -->
+    <style>
+        h3 {
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Caption display container -->
+
+    <div class="caption-container" id="fsContainer">
+        <div id="connectionIndicator"></div>
+        <div id="logo">
+            <img src="icons/capstrlogo.jpg" alt="capstr logo" height="50vh" style="filter: none;">
+        </div>
+        <div class="icon" id="settingsIcon">
+            <img src="icons/settingsicon.svg" alt="Translate Icon" width="100%" height="100%" style="filter: none;">
+        </div>
+        <div class="d1" id="capdiv">
+            <div id="ghostdiv" style="display: none; width: 100%">
+                <h3 id="ghost2"></h3>
+                <h3 id="ghost"></h3>
+            </div>
+            <div>
+                <h2 id="h2"></h2> <!-- Introduction message -->
+                <h1 id="h1"></h1>
+                <!-- Instructions for users -->
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Font Selection Popup -->
+    <!--     <div id="fontPopup" class="popup" style="display:none;">
+        <div class="popup-content">
+            <span class="close">&times;</span>
+            <h2> </h2>
+            <div class="font-option" id="defaultFont">Default (Sans Serif)</div>
+            <div class="font-option" id="tnrFont">Times New Roman</div>
+            <div class="font-option" id="csFont">Comic Sans</div>
+            <div class="font-option" id="odFont">Open Dyslexic</div>
+        </div>
+    </div> -->
+
+
+    <!-- Settings Popup -->
+    <div id="settingsPopup" class="popup" style="display:none;">
+        <div class="popup-content">
+            <div id="langdiv">
+                <h3>Language</h3>
+                <p class="option"><select id="languageselect" class="line-type-box">
+                    </select></p>
+            </div>
+            <h3>Use Color Coding</h3>
+            <label class="switch">
+                <input type="checkbox" id="colorCheckbox">
+                <span class="slider-switch"></span>
+            </label>
+            <h3>Show Previous 2 Captions</h3>
+            <label class="switch">
+                <input type="checkbox" id="ghostCheckbox">
+                <span class="slider-switch"></span>
+            </label>
+            <h3>Choose font</h3>
+            <div class="font-option" id="defaultFont">Default (Sans Serif)</div>
+            <div class="font-option" id="tnrFont">Times New Roman</div>
+            <div class="font-option" id="csFont">Comic Sans</div>
+            <div class="font-option" id="odFont">Open Dyslexic</div>
+            <h3>Font Size</h3>
+            <div><input type="range" class="slider" id="fontSizeSlider" min="50" max="150" value="100"></div>
+            <!-- Adjust min, max, value as needed -->
+            <h1 id="fontSizeValue">100%</h1>
+        </div>
+    </div>
+
+    <div id="instructionPopup" class="popup" style="display:block;">
+        <div class="popup-content">
+            <div>
+                <h3>
+                    <font color="yellow">Welcome to <span id="venuename">Capstr</span>!</font>
+                </h3>
+                <p><b>Please respect your fellow audience members by:</b></p>
+                <p>✅ Putting your phone on silent and/or Do Not Disturb mode</p>
+                <p>🚫 Refraining from checking texts/emails/social media or making calls</p>
+                <p>🚫 Not taking photos or videos</p>
+                <p>✅ Turning down your screen brightness</p>
+                <br>
+                <p>In the unlikely event you lose connection, a little ⚠️ icon will appear in the top right. Refresh the
+                    page to reconnect.</p>
+            </div>
+            <button class="button close" id="okButton"> Got it </button>
+        </div>
+    </div>
+
+    <div id="imgPopup" class="popup-img" style="display:none;">
+        <div class="popup-img">
+        </div>
+    </div>
+
+
+    <!-- JavaScript for client interaction -->
+    <script>
+        (function () {
+            "use strict";
+
+            // ==========================================================
+            // State
+            // ==========================================================
+
+            // Initialization of variables
+            var disableColor = false; // Flag for disabling color
+            var enableGhost = false; // Flag for disabling color
+            var fontScale = 100; // Base font scale percentage
+            var sizeAdapt = 1;
+
+            /*
+            // Welcome Texts
+            const welcomeTexts = [
+            'Please keep this page open on your phone during the performance.',
+            'The performance will begin shortly.',
+            'Please remember to put your device on mute and do not disturb mode.',
+            'You can adjust the appearance of the text with the buttons below.',
+            'Capstr is best viewed with your device in portait mode.',
+            ];
+
+            // cycle through texts
+            let currentTextIndex = 0;
+            let cycleInterval;
+
+            */
+
+            // connection indicator
+
+            let timeoutHandle = null; // This will store the timeout handle so we can clear it if necessary
+            let isConnected = false; // Initial state of the connection
+            let langSelect = 0; // index into text.line; dropdown now lists primary too, at index 0
+            let savedLangCookie; // language NAME from the cookie, resolved to langSelect once fetchShowSetup() loads the real language list
+
+            let venue = "capstr";
+            let showname = "this show";
+            let currentCaption = "";
+            let prevCaption = "";
+            let prevprevCaption = "";
+            let currentColor = "white";
+            let prevColor = "white";
+            let prevprevColor = "white";
+            let currentData = "";
+            let currentFont = "";
+            let fullscreen = false;
+            var opSize = 1;
+            var holding = false;
+            let settingsOpen = false;
+
+            const captionObj = document.getElementById("h1");
+            const characterObj = document.getElementById("h2");
+            const ghostObj = document.getElementById("ghost");
+            const ghostObj2 = document.getElementById("ghost2");
+            const indicator = document.getElementById('connectionIndicator');
+            const ghostdiv = document.getElementById("ghostdiv");
+
+            var mode = new URLSearchParams(location.search).get('mode') || 'index';
+
+            const logo = document.getElementById('logo');
+            const icons = document.querySelector('.icon-container');
+            const instructions = document.getElementById('instructionPopup');
+            const settings = document.getElementById("settingsPopup")
+            const settingsIcon = document.getElementById("settingsIcon");
+
+            if (mode !== 'index') {
+
+                logo.style.display = 'none';
+                instructions.style.display = 'none';
+                settingsIcon.style.display = 'none';
+                // popups are already display:none by default, so nothing to do here
+            }
+
+            if (mode == 'opmonitor') {
+
+                opSize = 4;
+            }
+
+
+
+            const manageConnection = async () => {
+                isConnected = true; // Set isConnected to true immediately
+                indicator.innerText = '';
+                // Clear existing timer if there is one
+                if (timeoutHandle !== null) {
+                    clearTimeout(timeoutHandle);
+                }
+
+                // Wait for 15 seconds
+                await new Promise(resolve => {
+                    timeoutHandle = setTimeout(() => {
+                        isConnected = false; // After 15 seconds, set isConnected to false
+                        indicator.innerText = '⚠️';
+                        resolve(); // Resolve the promise after the timeout
+                    }, 17000); // 15000 milliseconds = 15 seconds
+                });
+            };
+
+            // ==========================================================
+            // Helper functions
+            // ==========================================================
+
+            // ---- Cookies ----
+
+            // Function to retrieve a cookie's value
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                return parts.length === 2 ? parts.pop().split(';').shift() : undefined;
+            }
+
+            // Function to set a cookie
+            function setCookie(name, value, days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
+            }
+
+            // ---- Appearance: color/ghost overrides, font size, font & language choice ----
+
+            function cycleWelcomeTexts() {
+                document.getElementById("h2").innerText = `Welcome to ${venue}`;
+                document.getElementById("h1").innerText = `The performance of ${showname} will begin shortly.`;
+                if (!disableColor) {
+                    document.getElementById("h2").style.color = 'yellow';
+                } else {
+                    document.getElementById("h2").style.color = 'white';
+                }
+
+            }
+
+
+            // Function to check and apply overrides from cookies
+            function checkCookies() {
+
+                //color Cookie
+                const scaleCookieValue = getCookie("scaleCookie");
+                if (scaleCookieValue !== undefined) {
+                    fontScale = parseInt(scaleCookieValue); // Make sure to convert it to an integer if it's stored as a string
+                } else {
+                    fontScale = 100; // Default value if no cookie is found
+                }
+                setSize();
+
+                //
+                const colorCookie = getCookie("colorCookie");
+                console.log("color cookie: " + colorCookie)
+                if (colorCookie === "true") {
+                    disableColor = true;
+                } else {
+                    disableColor = false; // Default value if no cookie is found
+                }
+                setColor();
+
+                const fontCookie = getCookie("fontCookie");
+                if (fontCookie !== undefined) {
+                    currentFont = fontCookie;
+                } else {
+
+                }
+                changeFont(currentFont);
+
+                const ghostCookie = getCookie("ghostCookie");
+                if (ghostCookie === "false") {
+                    enableGhost = false;
+                } else {
+                    enableGhost = true; // Default value if no cookie is found
+                }
+                setGhost();;
+
+                // langCookie stores the language NAME, not langSelect's index, since indices aren't
+                // stable across shows with different language lists. It can't be resolved to an actual
+                // index until fetchShowSetup() loads the real language list, so just stash it for now.
+                savedLangCookie = getCookie("langCookie");
+
+            }
+
+            // Function to set size based on font scale
+            function setSize() {
+                var normScale = (fontScale / 100) * sizeAdapt * opSize;
+                console.log(sizeAdapt)
+                var newSize = 3.5 * normScale; // Calculating new size for h1 element
+                var h2newSize = 3 * normScale; // Calculating new size for h2 element
+                captionObj.style.fontSize = newSize + 'vh';
+                characterObj.style.fontSize = h2newSize + 'vh';
+                document.getElementById("fontSizeValue").style.fontSize = newSize + 'vh';
+                setCookie("scaleCookie", fontScale, 365); // Update the scale cookie
+            }
+
+            function setColor() {
+                console.log("setting color")
+                document.getElementById("capdiv").style.filter = disableColor ? 'grayscale(100%) brightness(500%)' : 'grayscale(0%)  brightness(100%)';
+                setCookie("colorCookie", disableColor, 365); // Update the scale cookie
+
+            }
+
+            function changeFont(fontName) {
+                currentFont = fontName;
+                console.log("click");
+                document.body.style.fontFamily = fontName;
+                if (fontName == 'OpenDyslexic') {
+                    document.getElementById('h1').style.lineHeight = '120%';
+                    sizeAdapt = 0.85;
+                    setSize();
+                    console.log(fontName)
+                }
+                else if (fontName == 'comicSans') {
+                    document.getElementById('h1').style.lineHeight = '120%';
+                    sizeAdapt = 0.9;
+                    setSize();
+                    console.log(fontName)
+                } else {
+                    document.getElementById('h1').style.lineHeight = '';
+                    sizeAdapt = 1;
+                    setSize();
+                    console.log(fontName)
+                };
+                updatefontlist();
+                setCookie("fontCookie", currentFont, 365); // Update the scale cookie
+            }
+            function setGhost() {
+                {
+                    if (mode !== 'index') {
+                        ghostdiv.style.display = "none"
+                    } else {
+                        ghostdiv.style.display = enableGhost ? 'block' : 'none';
+                        setCookie("ghostCookie", enableGhost, 365);
+                    }
+                }
+            }
+
+            function updatefontlist() {
+                if (currentFont == '') {
+                    document.getElementById("defaultFont").style.color = 'yellow';
+                    document.getElementById("tnrFont").style.color = 'white';
+                    document.getElementById("csFont").style.color = 'white';
+                    document.getElementById("odFont").style.color = 'white';
+                } else if (currentFont == 'Times New Roman') {
+                    document.getElementById("defaultFont").style.color = 'white';
+                    document.getElementById("tnrFont").style.color = 'yellow';
+                    document.getElementById("csFont").style.color = 'white';
+                    document.getElementById("odFont").style.color = 'white';
+                } else if (currentFont == 'comicSans') {
+                    document.getElementById("defaultFont").style.color = 'white';
+                    document.getElementById("tnrFont").style.color = 'white';
+                    document.getElementById("csFont").style.color = 'yellow';
+                    document.getElementById("odFont").style.color = 'white';
+                } else if (currentFont == 'OpenDyslexic') {
+                    document.getElementById("defaultFont").style.color = 'white';
+                    document.getElementById("tnrFont").style.color = 'white';
+                    document.getElementById("csFont").style.color = 'white';
+                    document.getElementById("odFont").style.color = 'yellow';
+                }
+            }
+
+            function changeLang(lang) {
+
+                const select = document.getElementById('languageselect');
+                langSelect = select.selectedIndex; // dropdown now lists primary too, so index lines up directly with text.line
+                setCookie("langCookie", select.value, 365); // store the language NAME, not the index, so it still makes sense on a different show
+                console.log("languagechanged: " + langSelect);
+            }
+
+            // ---- Caption rendering / hold state ----
+
+            function holdShow() {
+
+                captionObj.innerHTML = "";
+                characterObj.innerHTML = "";
+
+                if (mode != "monitor") {
+                    captionObj.innerHTML = `This production of ${showname} will begin shortly `;
+                    characterObj.innerHTML = `Welcome to ${venue}`;
+                }
+
+                captionObj.style.color = "white";
+                characterObj.style.color = "white";
+
+                ghostdiv.style.display = "none";
+
+            }
+
+            function unHold() {
+
+                if (enableGhost == false || mode !== 'index') {
+
+                    ghostdiv.style.display = "none";
+                } else {
+                    ghostdiv.style.display = "block";
+                }
+            }
+
+            // Function to apply text styling and captions from event data
+            function caption(text) {
+                console.log(text);
+                if (text.holding == true) {
+                    holding = true;
+                    holdShow();
+                } else { holding = false }
+
+                if (!holding) {
+                    unHold();
+                    fetchShowSetup();
+                    prevprevCaption = prevCaption;
+                    prevprevColor = prevColor;
+                    prevCaption = currentCaption;
+                    prevColor = currentColor;
+                    var fontStyle = text.italics ? "italic" : "normal";
+                    var fontWeight = text.bold ? "bold" : "normal";
+                    var smallCaps = text.caps ? "small-caps" : "normal";
+                    var underline = text.underline ? "underline" : "none";
+                    var brLeft = text.brackets ? "[" : "";
+                    var brRight = text.brackets ? "]" : "";
+                    var noteChar = text.notes ? " ♫ " : "";
+                    var isImg = text.isImg
+                    var imgURL = text.imgURL
+                    // text.line is [primary, ...translations]; live/manual input sends a plain string instead
+                    var currentLangCaption = Array.isArray(text.line) ? (text.line[langSelect] ?? text.line[0]) : text.line;
+                    document.getElementById('imgPopup').style.backgroundImage = `url('imgs/${imgURL}.jpg')`;
+                    let appendedLine = brLeft + noteChar + currentLangCaption + noteChar + brRight;
+                    currentCaption = currentLangCaption;
+                    //currentCaption = text.character + ": "+ currentLangCaption;
+                    captionObj.innerHTML = appendedLine;
+                    characterObj.innerHTML = text.character;
+                }
+
+                if (isImg == true) {
+                    document.getElementById('imgPopup').style.display = 'block';
+                } else if (isImg == false) {
+                    document.getElementById('imgPopup').style.display = 'none';
+                }
+
+                captionObj.style.color = text.color;
+                characterObj.style.color = text.color;
+                console.log(text.color);
+                ghostObj.style.color = prevColor;
+                ghostObj2.style.color = prevprevColor;
+                currentColor = text.color;
+
+                captionObj.style.fontStyle = fontStyle;
+                captionObj.style.fontWeight = fontWeight;
+                captionObj.style.fontVariantCaps = smallCaps;
+                captionObj.style.textDecoration = underline;
+
+                ghostObj.innerText = prevCaption;
+                ghostObj2.innerText = prevprevCaption;
+            }
+
+
+            // ---- Show setup polling ----
+
+            // Function to poll the web server and get the venue and show variables
+            async function fetchShowSetup() {
+                try {
+                    const response = await fetch('/show-setup-client', {
+                        method: 'GET', // Assuming the server has a GET endpoint to fetch the show setup data
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    console.log('Show Setup Data:', data);
+
+                    venue = data.venue;
+                    showname = data.showname;
+                    let numLangs = data.numLangs;
+                    document.getElementById("venuename").innerText = venue;
+                    // document.getElementById("venuewelcomecycle").innerText = venue;
+                    document.title = showname;
+
+                    if (numLangs >= 2) {
+                        document.getElementById("langdiv").style.display = 'block';
+                        console.log('langIcon');
+                    } else {
+                        document.getElementById("langdiv").style.display = 'none';
+                        console.log('no langIcon');
+                    }
+
+                    console.log('Venue:', venue);
+                    console.log('Show Name:', showname);
+                    holding = data.holding;
+                    if (data.holding == true) {
+                        holdShow();
+                    } else {
+                        unHold();
+                    }
+
+                    let languages = data.languages; // all languages, primary included, in the same order as text.line
+
+                    const langSelector = document.getElementById('languageselect');
+                    langSelector.innerHTML = ''; // avoid piling up duplicate options on every caption update
+                    languages.forEach((language) => {
+                        const option = document.createElement('option');
+                        option.value = language;
+                        option.textContent = language;
+                        langSelector.appendChild(option);
+                    });
+                    // resolve the saved language name to an index now that the real list is known;
+                    // only do this once, on initial load, so it doesn't override a live manual choice
+                    // on every later caption
+                    if (savedLangCookie !== undefined) {
+                        const savedIndex = languages.indexOf(savedLangCookie);
+                        langSelect = savedIndex >= 0 ? savedIndex : 0; // fall back to primary if that language doesn't exist for this show
+                        savedLangCookie = undefined;
+                    }
+
+                    // rebuilding the options above resets the visible selection to index 0;
+                    // restore it to whatever language is actually active (langSelect)
+                    langSelector.selectedIndex = langSelect;
+                    setCookie("langCookie", languages[langSelect], 365);
+
+                    // You can now use these variables to update your UI or perform other actions
+                } catch (error) {
+                    console.error('Error fetching show setup data:', error);
+                }
+            }
+
+            // ==========================================================
+            // Entry point
+            // ==========================================================
+            // must run before fetchShowSetup(), otherwise savedLangCookie is still unset when
+            // fetchShowSetup() resolves the language cookie, and it gets overwritten with primary
+            checkCookies();
+            fetchShowSetup();
+            captionObj.innerHTML = `This production of ${showname} will begin shortly `;
+            characterObj.innerHTML = `Welcome to ${venue}`;
+
+            // Event listener setup for color theme switch
+            document.getElementById("defaultFont").addEventListener("click", function () {
+                changeFont('')
+            });
+            document.getElementById("tnrFont").addEventListener("click", function () {
+                changeFont('Times New Roman')
+            });
+            document.getElementById("odFont").addEventListener("click", function () {
+                changeFont('OpenDyslexic')
+            });
+            document.getElementById("csFont").addEventListener("click", function () {
+                changeFont('comicSans')
+            });
+
+            document.getElementById("languageselect").addEventListener('change', () => {
+                changeLang();
+            });
+
+
+            // Initialization function on page load
+            window.onload = async function () {
+                // Call the function on page load
+
+                //checkOverrides();
+                checkCookies();
+                await fetchShowSetup(); // ensure venue/showname are populated before cycleWelcomeTexts() reads them
+                manageConnection();
+
+            };
+
+            // Server-sent events for caption updates
+            var es = new EventSource('/events');
+            es.onmessage = function (event) {
+
+
+                var data = JSON.parse(event.data);
+                if (!data.keepAlive) { // Ignore keep-alive messages
+                    manageConnection();
+                    caption(data); // Apply the caption styling based on data
+                    currentData = data;
+                } else {
+                    manageConnection();
+                    console.log("ping received");
+                }
+            };
+
+            // Error handling for server-sent events
+            es.addEventListener('error', function () {
+                console.error('Error with event source.');
+            });
+
+            // Handling undefined captions as connection lost
+            if (document.getElementById("h1").innerHTML === "undefined" && document.getElementById("h2").innerHTML === "undefined") {
+                captionObj.innerHTML = "Connection lost";
+                characterObj.innerHTML = "Please refresh";
+            }
+
+            document.getElementById('settingsIcon').onclick = function () {
+
+                if (settingsOpen == false) {
+                    settings.style.display = 'block';
+                    settingsOpen = true;
+                    document.getElementById('settingsIcon').style.border = "3px yellow"
+                } else {
+                    settings.style.display = 'none';
+                    settingsOpen = false;
+                    document.getElementById('settingsIcon').style.border = ""
+                }
+
+                if (fontScale === undefined) {
+                } else { document.getElementById('fontSizeValue').innerText = fontScale + '%'; }
+                document.getElementById('fontSizeSlider').value = fontScale;
+                document.getElementById('colorCheckbox').checked = !disableColor;
+                document.getElementById('ghostCheckbox').checked = enableGhost;
+                updatefontlist();
+            };
+
+            document.getElementById('colorCheckbox').onchange = function () {
+                disableColor = !this.checked;
+                setColor();
+            };
+
+            document.getElementById('ghostCheckbox').onchange = function () {
+                enableGhost = this.checked;
+                setGhost();
+            };
+
+            /*             document.getElementById('langIcon').onclick = function () {
+                            updatelanglist()
+                            document.getElementById('langPopup').style.display = 'block';
+                        }; */
+
+            document.querySelectorAll('.close').forEach(closeButton => {
+                closeButton.onclick = function () {
+                    this.parentElement.parentElement.style.display = 'none'; // Hide only the respective popup
+                    console.log("click");
+                };
+            }
+            );
+
+            document.getElementById('fontSizeSlider').oninput = function () {
+                fontScale = this.value;
+                setSize();
+                document.getElementById('fontSizeValue').innerText = fontScale + '%';
+            };
+
+            document.getElementById('connectionIndicator').onclick = function () {
+
+                if (isConnected == false) {
+                    window.location.reload();;
+                }
+            };
+
+            if (mode != "opmonitor") {
+
+                document.getElementById('logo').onclick = function () {
+                    if (fullscreen == false) {
+                        document.getElementById('fsContainer').requestFullscreen();
+                        fullscreen = true;
+                    }
+                    else {
+                        document.exitFullscreen();
+                        fullscreen = false;
+                    }
+                };
+
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'f') {
+                        if (fullscreen == false) {
+                            document.getElementById('fsContainer').requestFullscreen();
+                            fullscreen = true;
+                            document.getElementById('logo').style.display = 'none';
+                        }
+                        else {
+                            document.exitFullscreen();
+                            fullscreen = false;
+                            if (mode == "index") {
+                                document.getElementById('logo').style.display = 'block';
+                            }
+                        }
+                    }
+                });
+            }
+
+
+
+            document.addEventListener('click', function (event) {
+                // Check if the click happened outside of popup-content and is not from a popup-opener
+                if (!event.target.closest('.popup-content') && !event.target.closest('.icon')) {
+                    // Close all popups
+                    var popups = document.querySelectorAll('.popup');
+                    for (var i = 0; i < popups.length; i++) {
+                        if (popups[i].style.display == 'block') {
+                            popups[i].style.display = 'none';
+                        }
+                    }
+                }
+            });
+
+
+
+
+
+        })();
+
+    </script>
+</body>
+
+</html>

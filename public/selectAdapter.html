@@ -1,0 +1,69 @@
+<!--
+  Capstr
+  Copyright (C) 2026 Timothy Kelly
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capstr | Select Network Adapter</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        #bannerImage {
+            width: 80%;
+            height: auto;
+            display: block; /* Remove any space below the image */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        h1 {
+            font-size: 3em;
+        }
+
+        body {
+            text-align: center;
+            font-size: 0.7em;
+        }
+
+        .option {
+            font-size: 1.5em;
+        }
+
+
+    </style>
+</head>
+</head>
+<body>
+    <div class="titlebar">
+    </div>
+    <img src="icons/capstrlogo.jpg" alt="Capstr Logo" id="bannerImage" style="width: 50%;">
+    <h1>Setup</h1> 
+    <p class="option">Network Adapter <select id="adapterSelect" class="line-type-box"></select></p>
+    <p class="option">Network Port <input type="text" class="user-input" id="networkPortInput" value=3001></p> 
+    <p class="option">Serial Port (Experimental)<select id="serialPortSelect" class="line-type-box"></select></p>
+    <button class="button" onclick="selectAdapter()">Proceed</button>
+    <script src="selectAdapter.js"></script>
+
+    <p><b>A free, open source captioning solution for live theatre</b></p>
+    <p id="appVersion">
+    <p>Capstr is made possible thanks to support from: <br> University of Maryland<br>Oregon State University</p>
+    
+
+</body>
+</html>

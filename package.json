@@ -1,0 +1,19 @@
+{
+  "name": "capstr",
+  "version": "1.0.0",
+  "description": "Web relay server for the Capstr captioning system",
+  "main": "webserver.js",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^8.5.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node webserver.js"
+  },
+  "author": "Timothy Kelly & Peter Leibold",
+  "license": "Creative Commons - Attrubution-NonCommercial-ShareAlike 4.0 International"
+}

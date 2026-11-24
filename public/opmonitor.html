@@ -1,0 +1,316 @@
+<!--
+  Capstr
+  Copyright (C) 2026 Timothy Kelly
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS file -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <title>Capstr</title> <!-- Page title -->
+    <style> 
+        h1 {font-size: 12vh;}
+        h2 {font-size: 14vh;}
+        h3 {font-size: 9.6vh;}
+    </style>
+</head>
+
+<body>
+    <!-- Caption display container -->
+  
+    <div class="caption-container">
+        <div id ="connectionIndicator"></div>
+ 
+        <div>
+            <h2 id="h2">Welcome to <span id="venuewelcomecycle">Capstr</span></h2> <!-- Introduction message -->
+            <h1 id="h1">Please keep this page open on your phone during the show.</h1> <!-- Instructions for users -->
+        </div>
+
+        </div>
+
+
+
+    <!-- JavaScript for client interaction -->
+    <script>
+        (function () {
+            "use strict";
+
+            // Initialization of variables
+            var disableColor = false; // Flag for disabling color
+            var enableGhost = false; // Flag for disabling color
+            var fontScale = 100; // Base font scale percentage
+            var sizeAdapt = 1;
+
+            /*
+            // Welcome Texts
+            const welcomeTexts = [
+            'Please keep this page open on your phone during the performance.',
+            'The performance will begin shortly.',
+            'Please remember to put your device on mute and do not disturb mode.',
+            'You can adjust the appearance of the text with the buttons below.',
+            'Capstr is best viewed with your device in portait mode.',
+            ];
+
+            // cycle through texts
+            let currentTextIndex = 0;
+            let cycleInterval;
+
+            */
+        
+            function cycleWelcomeTexts() {
+                document.getElementById("h2").innerText = `Welcome to ${venue}`;
+                document.getElementById("h1").innerText = `The performance of ${showname} will begin shortly.`;
+                if (!disableColor) {
+                    document.getElementById("h2").style.color = 'yellow';
+                } else {
+                    document.getElementById("h2").style.color = 'white';
+                }
+                
+            }
+
+// connection indicator
+
+let timeoutHandle = null; // This will store the timeout handle so we can clear it if necessary
+let isConnected = false; // Initial state of the connection
+let langSelect = 1;
+
+let venue = "capstr";
+let showname = "this show";
+let currentCaption = "";
+let prevCaption = "";
+let prevprevCaption = "";
+let currentColor = "white";
+let prevColor = "white";
+let prevprevColor = "white";
+let currentData = "";
+let currentFont = "";
+
+const manageConnection = async () => {
+  isConnected = true; // Set isConnected to true immediately
+  document.getElementById('connectionIndicator').innerText = '';
+  // Clear existing timer if there is one
+  if (timeoutHandle !== null) {
+    clearTimeout(timeoutHandle);
+  }
+
+  // Wait for 15 seconds
+  await new Promise(resolve => {
+    timeoutHandle = setTimeout(() => {
+      isConnected = false; // After 15 seconds, set isConnected to false
+      document.getElementById('connectionIndicator').innerText = '⚠️';
+      resolve(); // Resolve the promise after the timeout
+    }, 17000); // 15000 milliseconds = 15 seconds
+  });
+};
+
+fetchShowSetup();
+
+            // Initialization function on page load
+            window.onload = function () {
+                // Call the function on page load
+
+                checkOverrides();
+                cycleWelcomeTexts();
+                manageConnection();
+                fetchShowSetup();
+            
+            };
+
+            // Server-sent events for caption updates
+            var es = new EventSource('/events');
+            es.onmessage = function (event) {
+
+                
+                var data = JSON.parse(event.data);
+                if (!data.keepAlive) { // Ignore keep-alive messages
+                    manageConnection();
+                    caption(data); // Apply the caption styling based on data
+                    currentData = data;
+                } else { manageConnection();
+                    console.log("ping received");
+                }
+            };
+
+            // Error handling for server-sent events
+            es.addEventListener('error', function () {
+                console.error('Error with event source.');
+            });
+
+            // Function to apply text styling and captions from event data
+            function caption(text) {
+                console.log(text);
+
+                var holding = text.holding
+
+                if (holding) {
+                    cycleWelcomeTexts();
+                    fetchShowSetup();
+                } else if (!holding) {
+                    fetchShowSetup();
+                prevprevCaption = prevCaption;
+                prevprevColor = prevColor;
+                prevCaption = currentCaption;
+                prevColor = currentColor;
+                var fontStyle = text.italics ? "italic" : "normal";
+                var fontWeight = text.bold ? "bold" : "normal";
+                var smallCaps = text.caps ? "small-caps" : "normal";
+                var underline = text.underline ? "underline" : "none";
+                var brLeft = text.brackets ? "[" : "";
+                var brRight = text.brackets ? "]" : "";
+                var noteChar = text.notes ? " ♫ " : "";
+                var isImg = text.isImg
+                var imgURL = text.imgURL
+                var currentLangCaption = text.line;
+
+                if (text.line !== "" && text.character !== "") {
+                    if (langSelect == 1) {
+                    // currentLangCaption = text.line;
+                    //currentCaption = text.character + ": "+ text.line;
+                    } else if (langSelect == 2) {
+                        currentLangCaption = text.lang2;
+                        //currentCaption = text.character + ": "+ currentLangCaption;
+                    }
+                    
+                    let appendedLine = brLeft + noteChar + currentLangCaption + noteChar + brRight;
+                    currentCaption = currentLangCaption;
+                    //currentCaption = text.character + ": "+ currentLangCaption;
+
+                    document.getElementById("h1").innerHTML = appendedLine;
+
+                    document.getElementById("h2").innerHTML = text.character;
+
+                } else {                 
+                    document.getElementById("h1").innerHTML = "...";
+                    document.getElementById("h2").innerHTML = text.character;
+                    currentCaption = "...";
+                }
+                if (isImg == true) {
+                    document.getElementById('imgPopup').style.display = 'block';
+                } else if (isImg == false) {
+                    document.getElementById('imgPopup').style.display = 'none';
+                }
+
+                if (!disableColor) {
+                    document.getElementById("h2").style.color = text.color;
+                    document.getElementById("h1").style.color = text.color;
+                    console.log(text.color);
+                    currentColor = text.color;
+                } else {
+                    document.getElementById("h2").style.color = 'white';
+                    document.getElementById("h1").style.color = 'white';
+                    currentColor = 'white';
+                }
+                document.getElementById("h1").style.fontStyle = fontStyle;
+                document.getElementById("h1").style.fontWeight = fontWeight;
+                document.getElementById("h1").style.fontVariantCaps = smallCaps;
+                document.getElementById("h1").style.textDecoration = underline;
+
+            }
+                }
+                
+
+            // Handling undefined captions as connection lost
+            if (document.getElementById("h1").innerHTML === "undefined" && document.getElementById("h2").innerHTML === "undefined") {
+                document.getElementById("h1").innerHTML = "Connection lost";
+                document.getElementById("h2").innerHTML = "Please refresh";
+            }
+
+
+
+
+
+const colorShade = (col, amt) => {
+  col = col.replace(/^#/, '')
+  if (col.length === 3) col = col[0] + col[0] + col[1] + col[1] + col[2] + col[2]
+
+  let [r, g, b] = col.match(/.{2}/g);
+  ([r, g, b] = [parseInt(r, 16) + amt, parseInt(g, 16) + amt, parseInt(b, 16) + amt])
+
+  r = Math.max(Math.min(255, r), 0).toString(16)
+  g = Math.max(Math.min(255, g), 0).toString(16)
+  b = Math.max(Math.min(255, b), 0).toString(16)
+
+  const rr = (r.length < 2 ? '0' : '') + r
+  const gg = (g.length < 2 ? '0' : '') + g
+  const bb = (b.length < 2 ? '0' : '') + b
+
+  return `#${rr}${gg}${bb}`
+}
+
+
+// Function to poll the web server and get the venue and show variables
+async function fetchShowSetup() {
+    try {
+        const response = await fetch('/show-setup-client', {
+            method: 'GET', // Assuming the server has a GET endpoint to fetch the show setup data
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Show Setup Data:', data);
+
+        venue = data.venue;
+        showname = data.showname;
+        let lang2 = data.lang2;
+        let primarylang = data.primarylang;
+        let numLangs = data.numLangs;
+        document.getElementById("venuename").innerText = venue;
+        // document.getElementById("venuewelcomecycle").innerText = venue;
+        document.title = showname;
+
+        if (numLangs >= 2) {
+            document.getElementById("langIcon").style.display = 'block';
+            console.log('langIcon');
+        } else {
+            document.getElementById("langIcon").style.display = 'none';
+            console.log('no langIcon');
+        }
+
+        console.log('Venue:', venue);
+        console.log('Show Name:', showname);
+        console.log('Lang2:', lang2);
+        document.getElementById("Lang2").innerHTML = lang2;
+        document.getElementById("defaultLang").innerHTML = primarylang;
+
+        // You can now use these variables to update your UI or perform other actions
+    } catch (error) {
+        console.error('Error fetching show setup data:', error);
+    }
+}
+
+
+document.getElementById('connectionIndicator').onclick = function() {
+
+    if (isConnected == false) {
+    window.location.reload();;}
+};
+
+
+        })();
+
+    </script>
+</body>
+</html>

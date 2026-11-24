@@ -1,0 +1,13 @@
+services:
+- type: web
+  name: capstr-web
+  runtime: node
+  repo: https://github.com/therealjimjelly/capstr
+  plan: free
+  envVars:
+  - key: SECRET_KEY
+    sync: false
+  region: virginia
+  buildCommand: npm install
+  startCommand: node webserver.js
+version: "1"

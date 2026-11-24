@@ -1,0 +1,80 @@
+{
+  "name": "capstr-desktop",
+  "version": "0.5.0",
+  "description": "Desktop (Electron) app for the Capstr captioning system",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "package": "electron-builder",
+    "postinstall": "electron-rebuild"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "bonjour": "^3.5.0",
+    "cors": "^2.8.5",
+    "dns2": "^2.1.0",
+    "dotenv": "^10.0.0",
+    "electron-builder-squirrel-windows": "^24.13.3",
+    "express": "^4.19.2",
+    "fkill": "^9.0.0",
+    "fs": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "osc": "^2.4.5",
+    "path": "^0.12.7",
+    "robotjs": "^0.6.0",
+    "serialport": "^12.0.0",
+    "xlsx": "^0.18.5"
+  },
+  "author": "Timothy Kelly & Peter Leibold",
+  "license": "Creative Commons - Attrubution-NonCommercial-ShareAlike 4.0 International",
+  "devDependencies": {
+    "electron": "^24.0.0",
+    "electron-builder": "^24.13.3",
+    "electron-rebuild": "^3.2.9"
+  },
+  "build": {
+    "appId": "com.capstr.id",
+    "productName": "Capstr",
+    "asar": false,
+    "afterPack": "build/adhoc-sign.js",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+        "server.js",
+        "main.js",
+        "cleanup.js",
+        "preload.js",
+        "packet.js",
+        "parseXLSX.js",
+        "showfileActions.js",
+        "sse.js",
+        "textTools.js",
+        "localOutputs.js",
+        "io.js",
+        "log.js",
+        "node_modules/**/*",
+        "blankshowfile.capstr",
+        "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../public",
+        "to": "public"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "build/icon.icns"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Utility"
+    }
+  }
+}

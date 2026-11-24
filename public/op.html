@@ -1,0 +1,809 @@
+<!--
+  Capstr
+  Copyright (C) 2026 Timothy Kelly
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capstr | Operator View</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="titlebar">
+        <div id="logo">
+            <img src="icons/capstrlogo_transparent.png" alt="capstr logo" height="25vh"
+                style="filter: none; position: absolute; top: 10px; left: 50vw; transform: translateX(-50%);">
+        </div>
+    </div>
+    <div id="main-container">
+
+        <a href="setup.html">
+            <button class="button" id="setupButton"> <span class="custom-emoji emoji-setup" role="img"
+                    aria-label="setup">⚙️⚙️ </span> Setup </button>
+        </a>
+        <button class="button" id="startButton"> <span class="custom-emoji emoji-run" role="img"
+                aria-label="setup">⚙️⚙️</span> Run Show </button>
+        <button class="button" id="holdButton"> <span class="custom-emoji emoji-stop" role="img"
+                aria-label="setup">⚙️⚙️</span> Stop Show </button>
+        <button class="button" id="monitorButton"> <span class="custom-emoji emoji-monitor" role="img"
+                aria-label="setup">⚙️⚙️</span> Monitor </button>
+
+        <div id="script-container" style="border-radius: 5px;">
+            <div class="line-numbers-container"></div>
+            <div class="lines-container">
+                <!-- Script lines will be dynamically added here -->
+            </div>
+        </div>
+
+        <div id="controls">
+            <button class="button" id="jumptoStart"><span class="custom-emoji emoji-jumpstart" role="img"
+                    aria-label="setup">⚙️⚙️⚙️</span>Jump to Start</button>
+            <button class="button" id="prevCaptionButton"><span class="custom-emoji emoji-jumpprevious" role="img"
+                    aria-label="setup">⚙️⚙️</span> Previous Caption</button>
+            <button class="button" id="nextCaptionButton"><span class="custom-emoji emoji-jumpnext" role="img"
+                    aria-label="setup">⚙️⚙️</span>Next Caption </button>
+            <button class="button" id="jumptoCurrent"><span class="custom-emoji emoji-recenter" role="img"
+                    aria-label="setup">⚙️⚙️</span> Recenter on Current Caption</button>
+        </div>
+
+        <div>
+            <div id="search-box">
+                <input type="text" id="searchInput" style="border-radius: 10px;"
+                    placeholder="Search captions... [ALT/OPTION]">
+                <button class="button" id="searchButton"> <span class="custom-emoji emoji-search" role="img"
+                        aria-label="setup">⚙️⚙️</span>Search</button>
+                <button class="button" id="findPreviousButton"><span class="custom-emoji emoji-last" role="img"
+                        aria-label="setup">⚙️</span></button>
+                <button class="button" id="findNextButton"><span class="custom-emoji emoji-next" role="img"
+                        aria-label="setup">⚙️</span></button>
+            </div>
+        </div>
+        <iframe id="iframe" src="http://capstr.local:3001/index.html?mode=opmonitor" width="100%"></iframe>
+        <div id="type-box">
+            <input type="text" id="typeInput" style="border-radius: 10px;" placeholder="Type live captions... [CTRL]">
+            <button class="button" id="typeButton"> <span class="custom-emoji emoji-send" role="img"
+                    aria-label="setup">⚙️⚙️</span> Send</button>
+            <button class="button" id="blankButton"><span class="custom-emoji emoji-blank" role="img"
+                    aria-label="setup">⚙️⚙️</span>Blank</button>
+            <button class="button" id="liveButton"><span class="custom-emoji emoji-live" role="img"
+                    aria-label="setup">⚙️⚙️⚙️</span> Live Captions</button>
+        </div>
+    </div>
+    <div id="info-status"
+        style="position: absolute; bottom: 40px; right: 30px; color: #ffffff; display: flex; align-items: right; gap: 15px;">
+        Server IP: <span id="ip-address" style="text-decoration: underline;"></span>
+        <p style="margin: 0;">Show Status: <span id="hold-status"></span></p>
+    </div>
+    <script>
+        // ==========================================================
+        // State
+        // ==========================================================
+        var isActive = true;
+        var captions = [];
+        var currentCaptionIndex = 0;
+        let holding = true;
+        var serverip = "";
+        var serverport = "";
+        var isEditing = false; // Flag to indicate if a caption is being edited
+        let editIndex = 0;
+        let currentSplit = {
+            firstline: "",
+            secondline: "",
+            character: "",
+        };
+        let linetypes = {}
+        let searchResults = [];
+        let currentSearchIndex = 0;
+        const scriptContainer = document.getElementById('script-container');
+
+        // caption.line is [primary language, ...translations]; the operator view only ever shows/edits the primary one
+        function getPrimaryLine(caption) {
+            if (!caption || caption.line == undefined) return "";
+            return Array.isArray(caption.line) ? caption.line[0] : caption.line;
+        }
+
+        // ==========================================================
+        // Entry points
+        // ==========================================================
+        requestIP();
+
+        document.addEventListener('DOMContentLoaded', async (event) => {
+            await getCurrentIndex();
+            fetchCaptions();
+            checkHoldStatus();
+            /*             if (holding === false) {
+                            startShow();
+                        } else {
+                            holdShow();
+                        } */
+        });
+
+        // ==========================================================
+        // Data fetching (captions, linetypes, server IP, hold/index state)
+        // ==========================================================
+
+        async function fetchCaptions() {
+            try {
+                const response = await fetch('/captions');
+                captions = await response.json();
+                const lineresponse = await fetch('/linetypes');
+                linetypes = await lineresponse.json();
+                console.log("linetypes: ", linetypes)
+                displayCaption(currentCaptionIndex);
+                updateControlBox();
+            } catch (error) {
+                console.error('Error fetching captions:', error);
+            }
+        }
+
+        async function requestIP() {
+            try {
+                const response = await fetch('/server-ip');
+                serverip = await response.json();
+                serverport = serverip.split(':')[1]; // Extract port from the response
+                console.log(serverip);
+                document.getElementById('ip-address').textContent = `${serverip}`;
+                document.getElementById('iframe').src = `http://capstr.local:${serverport}/index.html?mode=opmonitor`;
+            } catch (error) {
+                console.error('Error fetching ip:', error);
+            }
+        }
+
+        async function checkHoldStatus() {
+
+            const response = await fetch('/check-hold', {
+                method: 'POST',
+            });
+            const holdStatus = await response.json();
+            console.log('check hold:' + holdStatus)
+
+
+            if (holdStatus == true) {
+                holding = true;
+                document.getElementById('main-container').style.borderColor = 'red';
+                document.getElementById('hold-status').textContent = "HELD";
+                document.getElementById('hold-status').style.color = 'red';
+            } else {
+                holding = false;
+                document.getElementById('main-container').style.borderColor = 'green';
+                document.getElementById('hold-status').textContent = "RUNNING";
+                document.getElementById('hold-status').style.color = 'green';
+
+            }
+        }
+
+        async function getCurrentIndex() {
+
+            const response = await fetch('/check-index', {
+                method: 'POST',
+            });
+            const receivedIndex = await response.json();
+            currentCaptionIndex = receivedIndex;
+            console.log('index:' + receivedIndex)
+        }
+
+        // ==========================================================
+        // Caption navigation & sending
+        // ==========================================================
+
+        function handleLineClick(index) {
+            if (!isEditing) { // Disable if editing
+                console.log('Clicked line:', index);
+                currentCaptionIndex = index;
+                sendCaption();
+            }
+        }
+
+        function jumptoStart() {
+            if (!isEditing) { // Disable if editing
+                console.log('jump to start');
+                currentCaptionIndex = 0;
+                sendCaption();
+            }
+        }
+
+        function nextCaption() {
+            if (currentCaptionIndex < captions.length - 1) {
+                currentCaptionIndex++;
+            }
+            sendCaption();
+        }
+
+        function prevCaption() {
+            if (currentCaptionIndex > 0) {
+                currentCaptionIndex--;
+            }
+            sendCaption();
+        }
+
+        async function sendCaption() {
+            displayCaption(currentCaptionIndex);
+            const response = await fetch('/send-packet', {
+                method: 'POST',
+                body: JSON.stringify({ currentCaptionIndex }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            updateControlBox();
+        }
+
+        function updateControlBox() {
+            const beforeCaption = currentCaptionIndex > 0 ? captions[currentCaptionIndex - 1] : null;
+            const currentCaption = captions[currentCaptionIndex];
+            const afterCaption = currentCaptionIndex < captions.length - 1 ? captions[currentCaptionIndex + 1] : null;
+            document.getElementById('prev-text').innerHTML = beforeCaption ? `${beforeCaption.character} / ${getPrimaryLine(beforeCaption)}` : '';
+            document.getElementById('now-text').innerHTML = currentCaption ? `${currentCaption.character} / ${getPrimaryLine(currentCaption)}` : '';
+            document.getElementById('next-text').innerHTML = afterCaption ? `${afterCaption.character} / ${getPrimaryLine(afterCaption)}` : '';
+        }
+
+        // ==========================================================
+        // Editing captions (edit/save, split, delete)
+        // ==========================================================
+
+        function toggleEditMode(lineBox, characterBox, button, index, splitButton, linetypeBox) {
+            const activeContainer = button.closest('.line-container');
+            if (isEditing) {
+                // Save the changes
+                document.querySelectorAll('.edit-button').forEach(btn => {
+                    if (btn.closest('.line-container') !== activeContainer) {
+                        btn.disabled = false;
+                        btn.style.display = "block";
+                    }
+                });
+                document.querySelectorAll('.delete-button').forEach(btn => {
+                    btn.disabled = false;
+                    btn.style.display = "block";
+                });
+                splitButton.style.display = "none";
+                lineBox.contentEditable = false;
+                characterBox.contentEditable = false;
+                button.textContent = 'Edit';
+                if (!Array.isArray(captions[index].line)) {
+                    captions[index].line = [captions[index].line || ''];
+                }
+                captions[index].line[0] = lineBox.textContent;
+                captions[index].character = characterBox.textContent;
+                updateLine();
+                console.log(`Caption ${index} updated:`, captions[index]);
+                isEditing = false; // Reset editing flag to false
+                checkHoldStatus();
+            } else {
+                // Enable editing
+
+                document.querySelectorAll('.edit-button').forEach(btn => {
+                    if (btn.closest('.line-container') !== activeContainer) {
+                        btn.disabled = true;
+                        btn.style.display = "none";
+                    }
+                });
+                document.querySelectorAll('.delete-button').forEach(btn => {
+                    btn.disabled = true;
+                    btn.style.display = "none";
+                });
+
+                isEditing = true; // Set editing flag to true
+                splitButton.style.display = "block";
+                lineBox.contentEditable = true;
+                characterBox.contentEditable = true;
+                button.textContent = 'Save';
+                lineBox.focus();
+                document.getElementById('main-container').style.borderColor = 'orange';
+            }
+        }
+
+        async function updateLine() {
+            const response = await fetch('/update-line', {
+                method: 'POST',
+                body: JSON.stringify({ index: editIndex, line: getPrimaryLine(captions[editIndex]), character: captions[editIndex].character, linetype: captions[editIndex]['line-type'] }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            updateControlBox();
+        }
+
+        // getCaretPosition/splitAtCursor read the current text-selection position in the
+        // contentEditable line box, so the split button can act on wherever the cursor
+        // last was even though clicking it would otherwise steal that selection away.
+        function getCaretPosition(editableDiv) {
+            let caretPos = 0, sel, range;
+            if (window.getSelection) {
+                sel = window.getSelection();
+                if (sel.rangeCount) {
+                    range = sel.getRangeAt(0);
+                    const preCaretRange = range.cloneRange();
+                    preCaretRange.selectNodeContents(editableDiv);
+                    preCaretRange.setEnd(range.endContainer, range.endOffset);
+                    caretPos = preCaretRange.toString().length;
+                }
+            }
+            return caretPos;
+        }
+
+        function splitAtCursor(text, caretPosition, character) {
+            const firstPart = text.substring(0, caretPosition); // Get text before the caret
+            const secondPart = text.substring(caretPosition);   // Get text after the caret
+            return [firstPart, secondPart, character];
+        }
+
+        async function splitLine(currentSplit) {
+            const response = await fetch('/split-line', {
+                method: 'POST',
+                body: JSON.stringify({ index: editIndex, line1: currentSplit.firstline, line2: currentSplit.secondline, character: currentSplit.character }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            location.reload();
+            //fetchCaptions();
+        }
+
+        async function deleteCaption(deleteIndex) {
+            const response = await fetch('/delete-line', {
+                method: 'POST',
+                body: JSON.stringify({ index: deleteIndex, }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            fetchCaptions();
+        }
+
+        // ==========================================================
+        // Rendering the caption list
+        // ==========================================================
+
+        function displayCaption(index) {
+            scriptContainer.innerHTML = '';
+            let activeLineBox;
+
+            for (let i = 0; i < captions.length; i++) {
+                const lineContainer = document.createElement('div');
+                lineContainer.className = 'line-container';
+
+                const lineIndex = document.createElement('span');
+                lineIndex.className = 'line-index';
+                lineIndex.textContent = `${i + 1}.`;
+
+                if (captions[i].flag) {
+                    const redDot = document.createElement('span');
+                    redDot.className = 'red-dot';
+                    lineContainer.appendChild(redDot);
+                }
+
+                const thisCaptionObj = captions[i];
+
+                lineIndex.addEventListener('click', () => {
+                    var flagLocation = i + 1;
+                });
+                lineContainer.appendChild(lineIndex);
+
+                //attempt at spliting off character name
+                const characterBox = document.createElement('div');
+                characterBox.className = 'character-box';
+                characterBox.contentEditable = "false";
+                characterBox.innerHTML = `${captions[i].character}`;
+                characterBox.addEventListener('click', () => handleLineClick(i));
+
+                const lineBox = document.createElement('div');
+                lineBox.className = 'line-box';
+                lineBox.contentEditable = "false";
+                const capLine = getPrimaryLine(captions[i]);
+                lineBox.innerHTML = `${capLine}`;
+                lineContainer.addEventListener('click', () => handleLineClick(i));
+
+                const linetypeBox = document.createElement('select');
+                linetypeBox.className = 'line-type-box'
+                linetypeBox.addEventListener('click', (event) => event.stopPropagation());
+                //linetypeBox.innerHTML = `${thisCaptionObj['line-type']}`;
+                Object.keys(linetypes).forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type;
+                    option.className = 'option';
+                    option.textContent = type;
+                    if (type === thisCaptionObj['line-type']) {
+                        option.selected = true;
+                    }
+                    linetypeBox.appendChild(option);
+                });
+
+                linetypeBox.addEventListener('change', () => {
+                    captions[i]['line-type'] = linetypeBox.value;
+                    editIndex = i;
+                    updateLine();
+                });
+
+
+                const splitButton = document.createElement('button');
+                splitButton.className = 'split-button';
+                splitButton.style.display = "none";
+                splitButton.textContent = 'Split';
+                splitButton.addEventListener('mousedown', (event) => {
+                    event.preventDefault(); // stops the button from stealing focus/selection
+                    const caretPosition = getCaretPosition(lineBox);
+                    const [firstPart, secondPart, characterPart] = splitAtCursor(lineBox.textContent, caretPosition, captions[editIndex].character);
+                    currentSplit.firstline = firstPart;
+                    currentSplit.secondline = secondPart;
+                    currentSplit.character = characterPart;
+                    splitLine(currentSplit);
+                    // ... build currentSplit, call splitLine()
+                });
+
+
+                const editButton = document.createElement('button');
+                editButton.className = 'edit-button';
+                editButton.textContent = 'Edit';
+                editButton.addEventListener('click', () => {
+                    toggleEditMode(lineBox, characterBox, editButton, i, splitButton);
+                    editIndex = i;
+                });
+
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-button';
+                deleteButton.textContent = 'Delete';
+                deleteButton.addEventListener('click', () => {
+                    editIndex = i;
+                    deleteCaption(editIndex);
+                });
+
+
+
+                lineContainer.appendChild(characterBox);
+                lineContainer.appendChild(lineBox);
+                lineContainer.appendChild(editButton);
+                lineContainer.appendChild(deleteButton);
+                lineContainer.appendChild(splitButton);
+                lineContainer.appendChild(linetypeBox);
+
+                if (i === index) {
+                    const playbackIcon = document.createElement('div');
+                    playbackIcon.className = 'playbackIcon';
+                    lineContainer.appendChild(playbackIcon);
+                    activeLineBox = lineBox;
+                    lineContainer.className = 'line-container current';
+                }
+
+                if (i === index + 1) {
+                    const playbackIcon = document.createElement('div');
+                    playbackIcon.className = 'nextplaybackIcon';
+                    lineContainer.appendChild(playbackIcon);
+                    lineContainer.className = 'line-container queued';
+                }
+
+                scriptContainer.appendChild(lineContainer);
+            }
+
+            if (activeLineBox) {
+                activeLineBox.scrollIntoView({ behavior: "instant", block: "center" });
+            }
+        }
+
+        // ==========================================================
+        // Show state (hold / run)
+        // ==========================================================
+
+        async function holdShow() {
+            const response = await fetch('/hold', {
+                method: 'POST',
+            });
+            setCookie("holdCookie", true, 365);
+            checkHoldStatus();
+            sendCaption();
+        }
+
+        async function startShow() {
+            const response = await fetch('/start', {
+                method: 'POST',
+            });
+            setCookie("holdCookie", false, 365);
+            checkHoldStatus();
+            sendCaption();
+        }
+
+        // ==========================================================
+        // Search
+        // ==========================================================
+
+        function customSearch(text) {
+            const lines = document.querySelectorAll('.line-box');
+            searchResults = [];
+            currentSearchIndex = 0;
+            const searchButton = document.getElementById('searchButton');
+
+            lines.forEach((line) => {
+                if (line.textContent.toLowerCase().includes(text.toLowerCase())) {
+                    line.style.borderColor = '#4682B4';
+                    line.style.borderWidth = '2px';
+                    searchResults.push(line);
+                } else {
+                    line.style.borderColor = '#333';
+                    line.style.borderWidth = '1px';
+                }
+            });
+
+            if (searchResults.length > 0) {
+                searchResults[currentSearchIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            } else {
+                console.log("No matches found for the search.");
+
+            }
+
+
+        }
+
+        function findNext() {
+            if (searchResults.length > 0) {
+                currentSearchIndex = (currentSearchIndex + 1) % searchResults.length;
+                searchResults[currentSearchIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                console.log("No search results to navigate.");
+            }
+        }
+
+        function findPrevious() {
+            if (searchResults.length > 0) {
+                if (currentSearchIndex === 0) {
+                    currentSearchIndex = searchResults.length - 1;
+                } else {
+                    currentSearchIndex--;
+                }
+                searchResults[currentSearchIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                console.log("No search results to navigate.");
+            }
+        }
+
+        // ==========================================================
+        // Live captions / blank / misc senders
+        // ==========================================================
+
+        function sendLivePacket(data) {
+            // This is a placeholder for sending the data to the server.
+            // You can replace it with an actual AJAX call or WebSocket request.
+            console.log("Sending data to the server:", data);
+
+            // Example of an AJAX POST request
+            fetch('/send-live-packet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ liveInput: data }), // Changed 'words' to 'liveInput'
+            })
+                .then(response => response.json())
+                .then(data => console.log('Success:', data))
+                .catch((error) => console.error('Error:', error));
+        }
+
+        async function sendBlank() {
+            sendLivePacket(" ");
+            sendLivePacket(" ");
+            sendLivePacket(" ");
+            const response = await fetch('/send-blank', {
+                method: 'POST',
+            });
+
+        }
+
+        async function viewWebServer() {
+
+            fetch('/view-webserver', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain',
+                },
+                body: serverip, // Changed 'words' to 'liveInput'
+            })
+        }
+
+        // ==========================================================
+        // Cookies
+        // ==========================================================
+
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            return parts.length === 2 ? parts.pop().split(';').shift() : undefined;
+        }
+
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
+        }
+
+        // ==========================================================
+        // Event listener wiring (buttons, keyboard shortcuts)
+        // ==========================================================
+
+        function attachEventListeners() {
+            const searchButton = document.getElementById('searchButton');
+            const searchInput = document.getElementById('searchInput');
+            const typeButton = document.getElementById('typeButton');
+            const typeInput = document.getElementById('typeInput');
+            const jumpButton = document.getElementById('jumptoStart');
+            const nextCaptionButton = document.getElementById('nextCaptionButton');
+            const prevCaptionButton = document.getElementById('prevCaptionButton');
+            const startButton = document.getElementById('startButton');
+            const holdButton = document.getElementById('holdButton');
+            const liveButton = document.getElementById('liveButton');
+            const monitorButton = document.getElementById('monitorButton');
+            const currentButton = document.getElementById('jumptoCurrent');
+            const findNextButton = document.getElementById('findNextButton');
+            const findPreviousButton = document.getElementById('findPreviousButton');
+            const webviewbutton = document.getElementById('ip-address');
+
+            if (!searchButton || !searchInput) {
+                console.error('Search elements are not found.');
+            } else {
+                console.log("Search elements are found, adding event listeners.");
+                searchButton.addEventListener('click', () => {
+                    const searchText = searchInput.value.trim();
+                    customSearch(searchText);
+                });
+                document.getElementById('findNextButton').addEventListener('click', findNext);
+                document.getElementById('findPreviousButton').addEventListener('click', findPrevious);
+
+            }
+
+            if (!typeButton || !typeInput) {
+                console.error('Nothing to send.');
+            } else {
+                console.log("Search elements are found, adding event listeners.");
+                typeButton.addEventListener('click', () => {
+                    const typeText = typeInput.value.trim();
+                    sendLivePacket(typeText);
+                    document.getElementById('now-text').innerHTML = "Live: " + typeText;
+                    typeInput.value = '';
+                });
+            }
+
+            searchInput.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' && searchInput.value.trim() !== '') {
+                    searchButton.focus();
+                    searchButton.click();
+                }
+            });
+
+            typeInput.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' && typeInput.value.trim() !== '') {
+                    typeButton.focus();
+                    typeButton.click();
+                }
+            });
+
+            nextCaptionButton.addEventListener('click', () => {
+                nextCaption();
+            });
+            prevCaptionButton.addEventListener('click', () => {
+                prevCaption();
+            });
+
+            startButton.addEventListener('click', () => {
+                startShow();
+            });
+            holdButton.addEventListener('click', () => {
+                holdShow();
+            });
+
+            blankButton.addEventListener('click', () => {
+                sendBlank();
+            });
+
+            webviewbutton.addEventListener('click', () => {
+                viewWebServer();
+            });
+
+
+            monitorButton.addEventListener('click', () => {
+                let url = `http://${serverip}` + "/index.html?mode=monitor";
+                window.open(url, 'Capstr Monitor', 'top=500,left=200,frame=true,nodeIntegration=no,')
+                window.electronAPI.openMonitorWindow(url);
+            });
+
+            liveButton.addEventListener('click', () => {
+                let url = `http://${serverip}` + "/livetype.html";
+                window.open(url, 'LiveType', 'top=500,left=200,frame=true,nodeIntegration=no')
+            });
+
+            jumpButton.addEventListener('click', () => {
+                jumptoStart(); // Disable if editing
+            });
+
+            currentButton.addEventListener('click', () => {
+
+                displayCaption(currentCaptionIndex);
+                updateControlBox();
+
+            });
+
+            let keyIsPressed = false;
+
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Alt') {
+                    searchInput.focus();
+                    searchInput.select(); // Selects existing text so user can overwrite immediately
+                }
+                if (event.key === 'Control') {
+                    typeInput.focus();
+                    typeInput.select(); // Selects existing text so user can overwrite immediately
+                }
+                if (event.key === 'Escape') {
+                    sendBlank();
+                }
+
+
+                if (!isEditing) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault(); // Prevents the line break
+                    }
+                    if (!keyIsPressed) { // Disable key events if editing
+                        keyIsPressed = true;
+                        console.log('Key is pressed');
+
+                        if (document.activeElement.id === 'searchInput' || document.activeElement.id === 'typeInput') {
+                            if (event.key === ' ') {
+                                return;
+                            }
+                        } else {
+                            switch (event.key) {
+                                case ' ':
+                                    event.preventDefault();
+                                    nextCaption();
+                                    break;
+                                case 'ArrowDown':
+                                    nextCaption();
+                                    break;
+                                case 'ArrowUp':
+                                    prevCaption();
+                                    break;
+                            }
+                        }
+
+                        switch (event.key) {
+                            case 'ArrowRight':
+                                event.preventDefault();
+                                findNext();
+                                break;
+                            case 'ArrowLeft':
+                                event.preventDefault();
+                                findPrevious();
+                                break;
+                        }
+                    }
+                }
+            });
+
+            document.addEventListener('keyup', () => {
+                keyIsPressed = false;
+                console.log('Key is released');
+            });
+        }
+
+        attachEventListeners();
+
+    </script>
+</body>
+
+</html>

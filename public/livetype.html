@@ -1,0 +1,118 @@
+<!--
+  Capstr
+  Copyright (C) 2026 Timothy Kelly
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS file -->
+    <title>Live Text Box</title>
+</head>
+<body>
+
+    <h1>LiveType</h1>
+    <div><button class="button" onclick="triggerWindowsDictation()">Start Listening</button></div>
+    <div><textarea id="editableText" class="user-input" rows="10" cols="50" placeholder="Type something here..."></textarea></div>
+
+    <script>
+        // Function to send last 10 words to the server
+
+        document.addEventListener('keyup', (event) => {
+       
+        if (event.key === ' ') {
+                updateAndSend();
+            } 
+        
+        });
+
+
+        let lastText = '';
+
+
+        
+
+// Function to trigger Windows Dictation
+function triggerWindowsDictation() {
+
+    const inputField = document.getElementById('editableText');
+            inputField.focus();
+    // Send a POST request to the server to trigger dictation
+    fetch('/trigger-dictation', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => console.log('Dictation triggered:', data))
+    .catch(error => console.error('Error triggering dictation:', error));
+}
+
+// Set an interval to check for changes in the textarea value
+setInterval(() => {
+    const text = document.getElementById('editableText').value;
+    
+    // If the text has changed since the last check, trigger updateAndSend
+    if (text !== lastText) {
+        lastText = text;
+        updateAndSend();
+    }
+}, 1000); // Check every 1 second (1000ms)
+
+        // Listen for input events (for cases like dictation, copy-paste, etc.)
+document.getElementById('editableText').addEventListener('input', () => {
+    const text = document.getElementById('editableText').value;
+    if (text.endsWith(' ')) { // Check if the input ends with a space
+        updateAndSend();
+    }
+});
+
+        function sendLivePacket(data) {
+            // This is a placeholder for sending the data to the server.
+            // You can replace it with an actual AJAX call or WebSocket request.
+            console.log("Sending data to the server:", data);
+
+            // Example of an AJAX POST request
+            fetch('/send-live-packet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ liveInput: data }), // Changed 'words' to 'liveInput'
+            })
+            .then(response => response.json())
+            .then(data => console.log('Success:', data))
+            .catch((error) => console.error('Error:', error));
+        }
+
+        function getLastWords(text, numWords) {
+            let words = text.trim().split(/\s+/);
+            return words.slice(-numWords).join(' ');
+        }
+
+        function updateAndSend() {
+            let text = document.getElementById("editableText").value;
+            let last10Words = getLastWords(text, 10);
+            sendLivePacket(last10Words);
+        }
+
+    </script>
+
+</body>
+</html>

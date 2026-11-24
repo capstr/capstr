@@ -1,0 +1,59 @@
+{
+  "showinfo": {
+    "name": "this show",
+    "venue": "capstr",
+    "primary-language": "English",
+    "languages": [
+      "English",
+      "French"
+    ]
+  },
+  "linetypes": {
+    "spoken": {
+      "underline": false,
+      "bold": false,
+      "italics": false,
+      "caps": false,
+      "brackets": false,
+      "notes": false,
+      "small-caps": false,
+      "square-brackets": false
+    },
+    "sung": {
+      "underline": false,
+      "bold": false,
+      "italics": true,
+      "caps": false,
+      "brackets": false,
+      "notes": true,
+      "small-caps": false,
+      "square-brackets": false
+    },
+    "voiceover": {
+      "underline": false,
+      "bold": false,
+      "italics": true,
+      "caps": false,
+      "brackets": true,
+      "notes": false,
+      "small-caps": false,
+      "square-brackets": false
+    }
+  },
+  "characters": [
+    {
+      "name": "character 1",
+      "color": "#ffffff"
+    }
+    
+  ],
+  "captions": [
+    {
+      "line": "caption",
+      "character": "Blank",
+      "line-type": "SPOKEN",
+      "flag": false
+    }
+   
+  ]
+}

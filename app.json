@@ -1,0 +1,7 @@
+{
+    "name": "Capstr",
+    "description": "Web relay server for Capstr",
+    "repository": "https://github.com/therealjimjelly/capstr",
+    "logo": "https://node-js-sample-1234567890ab.herokuapp.com/node.png",
+    "keywords": ["node", "express", "static"]
+  }

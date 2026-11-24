@@ -1,0 +1,222 @@
+<!--
+  Capstr
+  Copyright (C) 2026 Timothy Kelly
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS file -->
+</head>
+
+<body>
+    <!-- Caption display container -->
+  
+    <div class="caption-container">
+        <div id ="connectionIndicator"></div>
+        <div class="d1" id="capdiv">
+            <div id="ghostdiv" style="display: none; width: 100%">
+                <h3 id="ghost2"></h3>
+                <h3 id="ghost"></h3>  
+        </div>
+        <div>
+            <h2 id="h2"></h2> <!-- Introduction message -->
+            <h1 id="h1"></h1> <!-- Instructions for users -->
+        </div>
+
+        </div>
+
+
+    <!-- JavaScript for client interaction -->
+    <script>
+        (function () {
+            "use strict";
+
+            // Initialization of variables
+            var disableColor = false; // Flag for disabling color
+            var enableGhost = false; // Flag for disabling color
+            var fontScale = 100; // Base font scale percentage
+            var sizeAdapt = 1;
+
+
+// connection indicator
+
+let timeoutHandle = null; // This will store the timeout handle so we can clear it if necessary
+let isConnected = false; // Initial state of the connection
+let langSelect = 1;
+
+let venue = "capstr";
+let showname = "this show";
+let currentCaption = "";
+let prevCaption = "";
+let prevprevCaption = "";
+let currentColor = "white";
+let prevColor = "white";
+let prevprevColor = "white";
+let currentData = "";
+let currentFont = "";
+
+
+const manageConnection = async () => {
+  isConnected = true; // Set isConnected to true immediately
+  document.getElementById('connectionIndicator').innerText = '';
+  // Clear existing timer if there is one
+  if (timeoutHandle !== null) {
+    clearTimeout(timeoutHandle);
+  }
+
+  // Wait for 15 seconds
+  await new Promise(resolve => {
+    timeoutHandle = setTimeout(() => {
+      isConnected = false; // After 15 seconds, set isConnected to false
+      document.getElementById('connectionIndicator').innerText = '⚠️';
+      resolve(); // Resolve the promise after the timeout
+    }, 17000); // 15000 milliseconds = 15 seconds
+  });
+};
+
+
+            // Initialization function on page load
+            window.onload = function () {
+                // Call the function on page load
+            
+            };
+
+            // Server-sent events for caption updates
+            var es = new EventSource('/events');
+            es.onmessage = function (event) {
+
+                
+                var data = JSON.parse(event.data);
+                if (!data.keepAlive) { // Ignore keep-alive messages
+                    manageConnection();
+                    caption(data); // Apply the caption styling based on data
+                    currentData = data;
+                } else { manageConnection();
+                    console.log("ping received");
+                }
+            };
+
+            // Error handling for server-sent events
+            es.addEventListener('error', function () {
+                console.error('Error with event source.');
+            });
+
+            // Function to apply text styling and captions from event data
+            function caption(text) {
+                console.log(text);
+
+                var holding = text.holding
+
+                if (holding) {
+
+                } else if (!holding) {
+
+                prevprevCaption = prevCaption;
+                prevprevColor = prevColor;
+                prevCaption = currentCaption;
+                prevColor = currentColor;
+                var fontStyle = text.italics ? "italic" : "normal";
+                var fontWeight = text.bold ? "bold" : "normal";
+                var smallCaps = text.caps ? "small-caps" : "normal";
+                var underline = text.underline ? "underline" : "none";
+                var brLeft = text.brackets ? "[" : "";
+                var brRight = text.brackets ? "]" : "";
+                var noteChar = text.notes ? "🎵" : "";
+                var isImg = text.isImg
+                var imgURL = text.imgURL
+                var currentLangCaption = text.line;
+
+                if (text.line !== "" && text.character !== "") {
+                    if (langSelect == 1) {
+                    // currentLangCaption = text.line;
+                    //currentCaption = text.character + ": "+ text.line;
+                    } else if (langSelect == 2) {
+                        currentLangCaption = text.lang2;
+                        //currentCaption = text.character + ": "+ currentLangCaption;
+                    }
+                    
+                    let appendedLine = brLeft + noteChar + currentLangCaption + noteChar + brRight;
+                    currentCaption = text.character + ": "+ currentLangCaption;
+
+                    document.getElementById("h1").innerHTML = appendedLine;
+
+                    document.getElementById("h2").innerHTML = text.character;
+
+                } else {                 
+                    document.getElementById("h1").innerHTML = "...";
+                    document.getElementById("h2").innerHTML = text.character;
+                    currentCaption = "...";
+                }
+
+
+                if (!disableColor) {
+                    document.getElementById("h2").style.color = text.color;
+                    document.getElementById("h1").style.color = text.color;
+                    console.log(text.color);
+                    document.getElementById("ghost").style.color = prevColor;
+                    document.getElementById("ghost2").style.color = prevprevColor;
+                    currentColor = text.color;
+                } else {
+                    document.getElementById("h2").style.color = 'white';
+                    document.getElementById("h1").style.color = 'white';
+                    currentColor = 'white';
+                }
+                document.getElementById("h1").style.fontStyle = fontStyle;
+                document.getElementById("h1").style.fontWeight = fontWeight;
+                document.getElementById("h1").style.fontVariantCaps = smallCaps;
+                document.getElementById("h1").style.textDecoration = underline;
+
+                document.getElementById("ghost").innerText = prevCaption;
+                document.getElementById("ghost2").innerText = prevprevCaption;
+            }
+                }
+                
+
+            // Handling undefined captions as connection lost
+            if (document.getElementById("h1").innerHTML === "undefined" && document.getElementById("h2").innerHTML === "undefined") {
+                document.getElementById("h1").innerHTML = "Connection lost";
+                document.getElementById("h2").innerHTML = "Please refresh";
+            }
+
+
+        })();
+        
+        let fullscreen = false;
+        console.log("fullscreen:" + fullscreen);
+
+        document.addEventListener('keydown', (event) => {
+            
+                if (event.key === 'f') {
+                    if (fullscreen == false) {
+                        document.body.requestFullscreen();
+                        fullscreen = true;
+
+                    }
+                    else {
+                        document.exitFullscreen();
+                        fullscreen = false;
+
+                    }
+                }
+});
+
+    </script>
+</body>
+</html>
