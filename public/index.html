@@ -35,7 +35,7 @@
 
 <body>
     <!-- Caption display container -->
-
+<div id="titlebar" class="titlebar" style="display: none; height: 25pt; transform: translateY(-10px);"> </div>
     <div class="caption-container" id="fsContainer">
         <div id="connectionIndicator"></div>
         <div id="logo">
@@ -198,13 +198,14 @@
 
                 logo.style.display = 'none';
                 instructions.style.display = 'none';
-                settingsIcon.style.display = 'none';
+                
                 // popups are already display:none by default, so nothing to do here
             }
 
             if (mode == 'opmonitor') {
 
                 opSize = 4;
+                settingsIcon.style.display = 'none';
             }
 
 
@@ -703,7 +704,12 @@
                         }
                     }
                 });
-            }
+            };
+
+            if (mode == "monitor") {
+                document.getElementById("titlebar").style.display = "block";
+                settingsIcon.classList.add('invisible');
+            };
 
 
 

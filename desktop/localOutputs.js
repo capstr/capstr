@@ -18,6 +18,7 @@
 
 const { SerialPort } = require('serialport');
 const osc = require("osc");
+const axios = require('axios');
 const { electron } = require('process');
 
 const textTools = require('./textTools.js');
@@ -130,4 +131,23 @@ function closeUDPPort() {
     try { udpPort.close(); } catch (e) {}
 }
 
-module.exports = { sendOSCMessage, sendHexToSerialPort, createOSCServer, closeUDPPort };
+// YOUTUBE LIVE CAPTIONS
+// Reverse-engineered wire format (not officially documented by YouTube): POST plain text
+// to the stream's Captions Ingestion URL (YOUTUBE_CAPTION_URL in .env) with an incrementing
+// &seq= on every request, body = UTC timestamp + newline + caption text + newline.
+
+let youtubeSeq = 0;
+
+function sendYouTubeCaption(text) {
+    const url = process.env.YOUTUBE_CAPTION_URL;
+    if (!url) return; // feature is optional; skip silently if not configured
+
+    // Each cue seems to get a fixed ~2s display window regardless of whether a replacement
+    // arrives sooner, and a new one landing mid-window merges with the old text instead of
+    // replacing it. Explicitly clearing the cue first (empty text) before sending the real
+    // caption forces the old one to end rather than relying on an implicit replace.
+    postYouTubeCaptionBody('');
+    postYouTubeCaptionBody(text);
+}
+
+module.exports = { sendOSCMessage, sendHexToSerialPort, createOSCServer, closeUDPPort};

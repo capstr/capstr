@@ -435,6 +435,14 @@ input[type=text]:focus {
     cursor: pointer;
 }
 
+.invisible {
+    opacity: 0%;
+}
+
+.invisible:hover {
+    opacity: 100%;
+}
+
 /* Ensure consistent icon size and padding */
 .icon img {
     height: 100%;

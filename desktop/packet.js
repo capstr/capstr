@@ -20,7 +20,7 @@
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const { sendSSEMessage } = require('./sse.js');
-const { sendOSCMessage, sendHexToSerialPort } = require('./localOutputs.js');
+const { sendOSCMessage, sendHexToSerialPort} = require('./localOutputs.js');
 const textTools = require('./textTools.js');
 const log = require('./log.js').log;
 
@@ -70,16 +70,18 @@ function assemble(currentCaptionObject, holding, liveInput) {
     const primaryLine = Array.isArray(packetData.line) ? packetData.line[0] : packetData.line;
 
     const packetJSON = JSON.stringify(packetData);
+    const captionText = packetData.character + ": " + primaryLine;
 
     const packet = {
 
         JSON: packetJSON,
         data: `data: ${packetJSON}\n\n`,
-        osc: textTools.formatForOSC(packetData.character + ": " + primaryLine, oscLength, oscLines),
-        hex: "1c"+"00"+textTools.textToHex(packetData.character + ": " + primaryLine)+"0d"
+        osc: textTools.formatForOSC(captionText, oscLength, oscLines),
+        hex: "1c"+"00"+textTools.textToHex(captionText)+"0d",
+        captionText: captionText
 
     }
-   
+
     return packet;
     }
 

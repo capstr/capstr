@@ -717,7 +717,7 @@
 
             monitorButton.addEventListener('click', () => {
                 let url = `http://${serverip}` + "/index.html?mode=monitor";
-                window.open(url, 'Capstr Monitor', 'top=500,left=200,frame=true,nodeIntegration=no,')
+                //window.open(url, 'Capstr Monitor', 'top=500,left=200,frame=true,nodeIntegration=no,')
                 window.electronAPI.openMonitorWindow(url);
             });
 
