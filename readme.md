@@ -3,6 +3,20 @@
 
 <img width="1157" height="991" alt="capstr screenshot" src="https://github.com/user-attachments/assets/9d9b3d26-a4e6-433b-bba5-cebc3489b09b" />
 
+## Mission
+
+Capstr is designed to reduce barriers to access to theatre for d/Deaf and Hard-of-Hearing audiences and to provide easy options for theatres to provide a bring-your-own device closed captioning solution.
+
+By removing the cost barrier, we hope that venues of all sizes that may not have previously had the can now 
+
+It **does not** and **should not** replace commitments to integrated access, such as integrated / creative captioning. which is an artistic tool in its own right. Research has routinely shown that d/Deaf audiences prefer open captions that are integrated into the scenery to closed ones. ***As such, capstr also provides functionality to send captions over osc to programs like Isadora where they can be formatted and integrated into a wider video deisgn for the show, while still enabling the operator to use a control surface specifically deisgned for captioning.***
+
+Currently, capstr still requires a human operator to follow the show. We are interested in expanding capstr's functionality to allow for auto-following and/or some auto-transcription at some point in the future, but believe this must be done with a significant amount of care.
+
+Captioning is an art in itself - where to break lines, the time each caption is cued at, how those captions appear (and what that communicates to an audience member about that character / line of dialog), and even what is or isn't captioned are dramaturgical choices and should be treated as such - and these creative choices should ideally be made by humans.
+
+***Any and all future AI integrations into capstr will be designed to be able to be run locally, using free open-source models, and be completely optional.***
+
 ## Installation
 
 Please download the latest version from Releases.
@@ -11,7 +25,7 @@ Please download the latest version from Releases.
 Download the dmg and move capstr into your Applications folder.
 As the app is unsigned, so you will likely encounter a popup telling you that it cannot be opened. This can be bypassed by going to your Mac's system **Settings>Privacy & Security**, scrolling down and allowing capstr. It should then open.
 
-### Windows build coming soon
+### *Windows build coming soon*
 
 ## Boot Screen
 The first thing you will see when capstr opens is the boot screen, which asks you to select a network adapter, choose a network port and a serial port.
@@ -104,6 +118,27 @@ You can send a blank caption with the **Blank** button.
 If you have a longer section that needs to be transcribed, open the LiveType window, and there is a larger box to type in. These captions are continuously sent as you type. 
 *You could use your computer's dictation feature with this box to live-transcribe speech*
 
+## Viewing Captions
+
+For audiences, capstr works entirely in-browser, there are no apps needed to be downloaded.
+
+For ease, we highly recommend providing audience members with both a QR code and a url they can use to access the caption page in their phone browsers.
+
+This should point to either *capstr.local:{port}*, *{ip address}:{port}*, or your *webserver url*.
+
+### The user experience
+
+Once on this page, users are greeted by an information page that tells them to silence their phones and dim their brightness - and to be courteous and not distract others by using their phones to do other things liek respond to texts or emails or scroll social media.
+
+After they hit proceed, they see a welcome text that includes the venue and show name you set up in **setup > venue / show info**. 
+
+Captions will appear on this page when the show is running and the operator starts cueing them.
+
+With the settings icon in the top right, audiences can choose a typeface from the bundled selection (a generic sans-serif, times new roman, comic sans and open dyslexic), adjust their font size, turn on or off the per-character color coding, and choose if they would like to see a ghost version of the previous two captions (in case they missed them ).
+
+*Currently, capstr works best with phones in portrait mode - a future update will work on optimizing the experience in landscape*
+
+
 ## Editing Captions
 
 In the main operator window, you will see an edit button and a delete button by each caption. 
@@ -156,11 +191,3 @@ Your captions should now appear on the webpage as you send them, as well as on t
 To map a different web address to your capstr webserver, purchase the domain you want and see your host's docuemntation on 
 
 ***If/when you update capstr at any point, it is a good idea to re-deploy to your webserver, to ensure compatibility continues (future capstr updates may break the connection with older versions of the webserver).***
-
-### Getting audiences connected
-
-For audiences, capstr works entirely in-browser, there are no apps needed to be downloaded.
-
-For ease, we highly recommend providing audience members with both a QR code and a url they can use to access the caption page in their phone browsers.
-
-For 
