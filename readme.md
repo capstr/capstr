@@ -1,8 +1,7 @@
 # Capstr
 ## A free,open-source captioning option for live theatre
 
-![screenshot of capstr](/imgs/capstr screenshot.jpg)
-
+<img width="1157" height="991" alt="capstr screenshot" src="https://github.com/user-attachments/assets/9d9b3d26-a4e6-433b-bba5-cebc3489b09b" />
 
 ## Installation
 
