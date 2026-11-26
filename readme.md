@@ -7,7 +7,7 @@
 
 Capstr is designed to reduce barriers to access to theatre for d/Deaf and Hard-of-Hearing audiences and to provide easy options for theatres to provide a bring-your-own device closed captioning solution.
 
-By removing the cost barrier, we hope that venues of all sizes that may not have previously had the can now 
+By removing the cost barrier, we hope that venues of all sizes that may not have previously had the the resources can now provide captioning to all of their audiences - in all of their shows.
 
 It **does not** and **should not** replace commitments to integrated access, such as integrated / creative captioning. which is an artistic tool in its own right. Research has routinely shown that d/Deaf audiences prefer open captions that are integrated into the scenery to closed ones. ***As such, capstr also provides functionality to send captions over osc to programs like Isadora where they can be formatted and integrated into a wider video deisgn for the show, while still enabling the operator to use a control surface specifically deisgned for captioning.***
 
@@ -29,6 +29,9 @@ As the app is unsigned, so you will likely encounter a popup telling you that it
 
 ## Boot Screen
 The first thing you will see when capstr opens is the boot screen, which asks you to select a network adapter, choose a network port and a serial port.
+
+<img width="612" height="712" alt="SCR-20261125-pkzg" src="https://github.com/user-attachments/assets/97bdf64e-67e4-4baa-bef7-efccf0cc0adf" />
+
 
 The network port defaults to 3001, but you can choose whatever you want.
 
@@ -73,6 +76,8 @@ After importing a xlsx or a .capstr showfile, under **Setup>Character** you can 
 
 Capstr will update this list as lines are edited in the main operator menu in edit mode.
 
+<img width="1157" height="991" alt="SCR-20261125-pjan" src="https://github.com/user-attachments/assets/5acc1df9-a2c1-4be0-a683-08e76da60db5" />
+
 ## Linetypes
 
 Each caption has a "linetype" associated with it, populated from the type column in your xlsx file on import. 
@@ -81,11 +86,15 @@ Linetypes can be named anything you want - but the type "title" is special as it
 
 Linetypes present in the showfile are listed on the Setup > Linetypes page. here you can select formatting styles and text-decoration to help indicate the different things those captions might be representing. For example a line sing by a character in a show might use a "sung" linetype which wraps the text in musical notes, while a "music" linetype might indicate a song playing over the speakers and utilise both the musical notes and italics / square brackets.
 
+<img width="1157" height="991" alt="SCR-20261125-pjds" src="https://github.com/user-attachments/assets/bec34ae1-534c-4e71-a7b1-a689ecb121ae" />
+
 *Each caption can be reassigned to a different linetype using the dropdown list next to it in the main operator view.*
 
 ## Operation
 
 The main operator window is where you actually run the show from.
+
+<img width="1157" height="991" alt="capstr screenshot" src="https://github.com/user-attachments/assets/a30ff1c5-abc9-4e63-9969-118eccf32de5" />
 
 ### Running and Holding the show
 When capstr opens, the show will be **held** by default - this means that no captions are being sent to audience members. To send captions out, make sure the show is in run mode first.
@@ -130,22 +139,36 @@ This should point to either *capstr.local:{port}*, *{ip address}:{port}*, or you
 
 Once on this page, users are greeted by an information page that tells them to silence their phones and dim their brightness - and to be courteous and not distract others by using their phones to do other things liek respond to texts or emails or scroll social media.
 
+<img width="570" height="999" alt="SCR-20261125-pjke" src="https://github.com/user-attachments/assets/d977c9f1-e364-490c-8426-e9ae48f665cc" />
+
+
 After they hit proceed, they see a welcome text that includes the venue and show name you set up in **setup > venue / show info**. 
 
 Captions will appear on this page when the show is running and the operator starts cueing them.
 
-With the settings icon in the top right, audiences can choose a typeface from the bundled selection (a generic sans-serif, times new roman, comic sans and open dyslexic), adjust their font size, turn on or off the per-character color coding, and choose if they would like to see a ghost version of the previous two captions (in case they missed them ).
+With the settings icon in the top right, audiences can choose a typeface from the bundled selection (a generic sans-serif, times new roman, comic sans and open dyslexic), adjust their font size, turn on or off the per-character color coding, and choose if they would like to see a ghost version of the previous two captions (in case they missed them ):
+
+<img width="472" height="343" alt="SCR-20261125-pjws" src="https://github.com/user-attachments/assets/aae7c638-6ed5-4730-92f6-35b2f68bf187" />
+<img width="560" height="1064" alt="SCR-20261125-pjqq" src="https://github.com/user-attachments/assets/332403a2-7bad-4ab4-86e5-5851c18476c8" />
 
 *Currently, capstr works best with phones in portrait mode - a future update will work on optimizing the experience in landscape*
-
 
 ## Editing Captions
 
 In the main operator window, you will see an edit button and a delete button by each caption. 
+
+<img width="993" height="60" alt="SCR-20261125-pkgb" src="https://github.com/user-attachments/assets/c7d94389-62b7-4367-920c-d96beb677bd7" />
+
+As well as editing the text, you can also split a caption into multiple lines by using the **split** button, this will split the caption at wherever the text cursor is in the line.
+*(For bilingual capstr showfiles, split will split the current line in the primary language and just duplicate it in the secondary languages - you can go back and edit those by switching primary language in setup)*
+
 *WARNING: Edits in operator mode auto-save - so this action is not undoable. A future version of capstr will add in undo functionality.*
 
 **Delete** removes that entire caption from the showfile.
-Edit opens edit mode where you can edit the text in both the character box and the dialog box,
+Edit opens edit mode where you can edit the text in both the character box and the dialog box:
+
+<img width="1003" height="55" alt="SCR-20261125-pkee" src="https://github.com/user-attachments/assets/950b2937-dadc-4f7c-8138-46df3ddad5ab" />
+
 
 To edit the dialog of one of the other languages in your showfile, you must set that langauge as primary in **Setup>Show / Venue Info**, then you will see that language track in your operator view.
 
@@ -191,3 +214,15 @@ Your captions should now appear on the webpage as you send them, as well as on t
 To map a different web address to your capstr webserver, purchase the domain you want and see your host's docuemntation on 
 
 ***If/when you update capstr at any point, it is a good idea to re-deploy to your webserver, to ensure compatibility continues (future capstr updates may break the connection with older versions of the webserver).***
+
+
+
+## Thanks & credits
+
+Capstr was created by Timothy Kelly and Peter Leibold.
+
+It was created with the kind support of:
+
+- The University of Maryland School of Theatre, Dance, and Performance Studies
+- Oregon State University School of Visual, Performing, and Design Arts
+- Andy's Summer Playhouse, New Hampshire
