@@ -1,10 +1,8 @@
 # Capstr
 ## A free,open-source captioning option for live theatre
 
-## 1-click webserver setup:
+![screenshot of capstr](/imgs/capstr screenshot.jpg)
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://www.heroku.com/deploy?template=https://github.com/therealjimjelly/capstr)
 
 ## Installation
 
@@ -56,13 +54,21 @@ Use the following format for your caption script.
 
 You can also import and export pre-made .capstr showfiles from **Setup>Showfile**, which includes all captions as well as linetypea and character formatting
 
-## Character Setup
+## Characters
 
-After importing a xlsx or a .capstr showfile, under **Setup>Character** you can select a display color for each detected character. Capstr will update this list as lines are edited in the main operator menu in edit mode.
+After importing a xlsx or a .capstr showfile, under **Setup>Character** you can select a display color for each detected character. 
 
-## Linetype Setup
+Capstr will update this list as lines are edited in the main operator menu in edit mode.
 
+## Linetypes
 
+Each caption has a "linetype" associated with it, populated from the type column in your xlsx file on import. 
+
+Linetypes can be named anything you want - but the type "title" is special as it will cause the character name in that caption to not be imported into the character list.
+
+Linetypes present in the showfile are listed on the Setup > Linetypes page. here you can select formatting styles and text-decoration to help indicate the different things those captions might be representing. For example a line sing by a character in a show might use a "sung" linetype which wraps the text in musical notes, while a "music" linetype might indicate a song playing over the speakers and utilise both the musical notes and italics / square brackets.
+
+*Each caption can be reassigned to a different linetype using the dropdown list next to it in the main operator view.*
 
 ## Operation
 
@@ -118,3 +124,44 @@ You can use capstr to drive captions on an external display like a tv screen or 
 *You can edit font choice, size and language choice with the settings icon that appears upon hovering in the top right corner.*
 
 *NOTE: On Mac, this functionality requires **"Displays have seperate spaces"** to be enabled in your system **Settings > Desktop & Dock***
+
+# Web App
+
+As well as accessing the live caption through the local network at capstr.local:{port}, you can set capstr up to send captions out to a web-hosted server that you can host yourself for a small fee on services like **Heroku** or **Render.com**
+
+### Why use the web server vs just the local version?
+
+Capstr is designed for maximum flexibility and ease of use for both venues and audiences. While a locally-hosted version of capstr is both free and much more within your control, there is potential friction for the user as they have to join your wifi network. For non tech-savvy customers, the burden of assiting with this falls to an already busy FoH team.
+
+That said, if your venue has spotty cellular coverage - or you wish to use capstr on venue-provided devices rather than audience members' own, the local version may well be your best best. Although every attempt has been made to simplify this process as much as humanly possible, the web server version also does require slightly more technical prowess to set up than the purely local one - especially if you wish to use a custom web address like *www.{yourvenuename}-capstr.com*.
+
+
+## 1-click webserver setup:
+
+You can set up the webserver on Heroku or Render.com using these 1-click buttons that deploy it for you. Other services are available and will work, but are currently untested.
+
+To set this up, you will need to set a secret key called "SECRET_KEY" in your environment variables - you may be asked for this / to generate this on the main setup screen of your host of choice - or you may have to find it in your environment settings. 
+
+Choose or generate a secure, random string as your secret key, and note it securely for safe keeping.
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://www.heroku.com/deploy?template=https://github.com/therealjimjelly/capstr)
+
+
+### Connecting to capstr
+
+Back in Capstr, under Setup > Web, you can paste in your secret key and the url of your webserver (i.e. the page your webserver appears on - for render.com, this is something like *https://capstr-web-jl6n.onrender.com*), and click **set url** and **set scret key**.
+
+Your captions should now appear on the webpage as you send them, as well as on the local version.
+
+To map a different web address to your capstr webserver, purchase the domain you want and see your host's docuemntation on 
+
+***If/when you update capstr at any point, it is a good idea to re-deploy to your webserver, to ensure compatibility continues (future capstr updates may break the connection with older versions of the webserver).***
+
+### Getting audiences connected
+
+For audiences, capstr works entirely in-browser, there are no apps needed to be downloaded.
+
+For ease, we highly recommend providing audience members with both a QR code and a url they can use to access the caption page in their phone browsers.
+
+For 
